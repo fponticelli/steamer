@@ -1,4 +1,4 @@
 steamer
 =======
 
-Haxe attempt at stream like thinghies
+Haxe attempt at stream like thingies
