@@ -2,7 +2,7 @@ import utest.Assert;
 import utest.Runner;
 import utest.ui.Report;
 
-import steamer.*;
+using steamer.Producer;
 import steamer.Pulse;
 import steamer.consumers.*;
 import steamer.producers.*;
@@ -59,6 +59,21 @@ class TestAll {
 			.feed(
 				AssertConsumer.ofArray(
 					["11","22","33"],
+					Assert.createAsync()
+				)
+			);
+	}
+
+	public function testFlatMap() {
+		Producer.ofArray([
+				[1],
+				[2,3],
+				[4,5,6]
+			])
+			.flatMap()
+			.feed(
+				AssertConsumer.ofArray(
+					[1,2,3,4,5,6],
 					Assert.createAsync()
 				)
 			);

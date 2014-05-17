@@ -37,28 +37,20 @@ class Producer<T> {
 	}
 
 	public function mapAsync<TOut>(transform : T -> (TOut -> Void) -> Void) : Producer<TOut> {
-		return new Producer(function(forward) {
-			this.feed({
-				onPulse : function(pulse : Pulse<T>) {
-					switch (pulse) {
-						case Emit(value):
-							try {
-								function t(v : TOut) {
-									forward(Emit(v));
-								}
-								transform(value, t);
-							} catch(e : Error) {
-								forward(Fail(e));
-							} catch(e : Dynamic) {
-								forward(Fail(new Error(Std.string(e))));
-							}
-						case End:
-							forward(End);
-						case Fail(error):
-							forward(Fail(error));
+		return new Producer(function(forward : Pulse<TOut> -> Void) {
+			this.feed(BusConsumer.passOn(
+				function(value : T) {
+					try {
+						function t(v : TOut) forward(Emit(v));
+						transform(value, t);
+					} catch(e : Error) {
+						forward(Fail(e));
+					} catch(e : Dynamic) {
+						forward(Fail(new Error(Std.string(e))));
 					}
-				}
-			});
+				},
+				forward
+			));
 		}, endOnError);
 	}
 
@@ -81,7 +73,12 @@ class Producer<T> {
 		return producer.map(function(v) return !v);
 
 	public static function flatMap<T>(producer : Producer<Array<T>>) : Producer<T> {
-		return null; // TODO
+		return new Producer(function(forward : Pulse<T> -> Void) {
+			producer.feed(BusConsumer.passOn(
+				function(arr : Array<T>) arr.map(function(value) forward(Emit(value))),
+				forward
+			));
+		}, producer.endOnError);
 	}
 
 	public static function ofArray<T>(values : Array<T>) : Producer<T> {
@@ -89,6 +86,36 @@ class Producer<T> {
 			values.map(function(v) forward(Emit(v)));
 			forward(End);
 		});
+	}
+}
+
+class BusConsumer<T> {
+	public static function passOn<TIn, TOut>(emit : TIn -> Void, forward : Pulse<TOut> -> Void) {
+		return new BusConsumer(
+			emit,
+			function() forward(End),
+			function(error) forward(Fail(error))
+		);
+	}
+
+	var emit : T -> Void;
+	var end : Void -> Void;
+	var fail : Error -> Void;
+	public function new(emit : T -> Void, end : Void -> Void, fail : Error -> Void) {
+		this.emit = emit;
+		this.end = end;
+		this.fail = fail;
+	}
+
+	public function onPulse(pulse : Pulse<T>) {
+		switch (pulse) {
+			case Emit(value):
+				emit(value);
+			case End:
+				end();
+			case Fail(error):
+				fail(error);
+		}
 	}
 }
 

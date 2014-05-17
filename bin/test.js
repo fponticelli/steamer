@@ -235,6 +235,9 @@ TestAll.prototype = {
 			return "" + v + v;
 		}).feed(steamer.consumers.AssertConsumer.ofArray(["11","22","33"],utest.Assert.createAsync()));
 	}
+	,testFlatMap: function() {
+		steamer.Producer.flatMap(steamer.Producer.ofArray([[1],[2,3],[4,5,6]])).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3,4,5,6],utest.Assert.createAsync()));
+	}
 	,__class__: TestAll
 };
 var ValueType = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
@@ -677,7 +680,13 @@ steamer.Producer.negate = function(producer) {
 	});
 };
 steamer.Producer.flatMap = function(producer) {
-	return null;
+	return new steamer.Producer(function(forward) {
+		producer.feed(steamer.BusConsumer.passOn(function(arr) {
+			arr.map(function(value) {
+				forward(steamer.Pulse.Emit(value));
+			});
+		},forward));
+	},producer.endOnError);
 };
 steamer.Producer.ofArray = function(values) {
 	return new steamer.Producer(function(forward) {
@@ -739,37 +748,59 @@ steamer.Producer.prototype = {
 	,mapAsync: function(transform) {
 		var _g = this;
 		return new steamer.Producer(function(forward) {
-			_g.feed({ onPulse : function(pulse) {
-				switch(pulse[1]) {
-				case 0:
-					var value = pulse[2];
-					try {
-						var t = function(v) {
-							forward(steamer.Pulse.Emit(v));
-						};
-						transform(value,t);
-					} catch( $e0 ) {
-						if( js.Boot.__instanceof($e0,Error) ) {
-							var e = $e0;
-							forward(steamer.Pulse.Fail(e));
-						} else {
-						var e1 = $e0;
-						forward(steamer.Pulse.Fail(new Error(Std.string(e1))));
-						}
+			_g.feed(steamer.BusConsumer.passOn(function(value) {
+				try {
+					var t = function(v) {
+						forward(steamer.Pulse.Emit(v));
+					};
+					transform(value,t);
+				} catch( $e0 ) {
+					if( js.Boot.__instanceof($e0,Error) ) {
+						var e = $e0;
+						forward(steamer.Pulse.Fail(e));
+					} else {
+					var e1 = $e0;
+					forward(steamer.Pulse.Fail(new Error(Std.string(e1))));
 					}
-					break;
-				case 1:
-					forward(steamer.Pulse.End);
-					break;
-				case 2:
-					var error = pulse[2];
-					forward(steamer.Pulse.Fail(error));
-					break;
 				}
-			}});
+			},forward));
 		},this.endOnError);
 	}
 	,__class__: steamer.Producer
+};
+steamer.BusConsumer = function(emit,end,fail) {
+	this.emit = emit;
+	this.end = end;
+	this.fail = fail;
+};
+steamer.BusConsumer.__name__ = ["steamer","BusConsumer"];
+steamer.BusConsumer.passOn = function(emit,forward) {
+	return new steamer.BusConsumer(emit,function() {
+		forward(steamer.Pulse.End);
+	},function(error) {
+		forward(steamer.Pulse.Fail(error));
+	});
+};
+steamer.BusConsumer.prototype = {
+	emit: null
+	,end: null
+	,fail: null
+	,onPulse: function(pulse) {
+		switch(pulse[1]) {
+		case 0:
+			var value = pulse[2];
+			this.emit(value);
+			break;
+		case 1:
+			this.end();
+			break;
+		case 2:
+			var error = pulse[2];
+			this.fail(error);
+			break;
+		}
+	}
+	,__class__: steamer.BusConsumer
 };
 steamer.Pulse = { __ename__ : ["steamer","Pulse"], __constructs__ : ["Emit","End","Fail"] };
 steamer.Pulse.Emit = function(value) { var $x = ["Emit",0,value]; $x.__enum__ = steamer.Pulse; $x.toString = $estr; return $x; };
