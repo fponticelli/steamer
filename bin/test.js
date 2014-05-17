@@ -238,6 +238,14 @@ TestAll.prototype = {
 	,testFlatMap: function() {
 		steamer.Producer.flatMap(steamer.Producer.ofArray([[1],[2,3],[4,5,6]])).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3,4,5,6],utest.Assert.createAsync()));
 	}
+	,testFilter: function() {
+		steamer.Producer.ofArray([1,2,3,4,5]).filter(function(v) {
+			return v % 2 == 0;
+		}).feed(steamer.consumers.AssertConsumer.ofArray([2,4],utest.Assert.createAsync()));
+	}
+	,testMerge: function() {
+		steamer.Producer.ofArray([1,2,3]).merge(steamer.Producer.ofArray([4,5,6])).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3,4,5,6],utest.Assert.createAsync()));
+	}
 	,__class__: TestAll
 };
 var ValueType = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
@@ -681,7 +689,7 @@ steamer.Producer.negate = function(producer) {
 };
 steamer.Producer.flatMap = function(producer) {
 	return new steamer.Producer(function(forward) {
-		producer.feed(steamer.BusConsumer.passOn(function(arr) {
+		producer.feed(steamer.Bus.passOn(function(arr) {
 			arr.map(function(value) {
 				forward(steamer.Pulse.Emit(value));
 			});
@@ -748,7 +756,7 @@ steamer.Producer.prototype = {
 	,mapAsync: function(transform) {
 		var _g = this;
 		return new steamer.Producer(function(forward) {
-			_g.feed(steamer.BusConsumer.passOn(function(value) {
+			_g.feed(steamer.Bus.passOn(function(value) {
 				try {
 					var t = function(v) {
 						forward(steamer.Pulse.Emit(v));
@@ -766,22 +774,72 @@ steamer.Producer.prototype = {
 			},forward));
 		},this.endOnError);
 	}
+	,log: function(prefix,posInfo) {
+		if(prefix == null) prefix = ""; else prefix = "" + prefix + ": ";
+		return this.map(function(v) {
+			haxe.Log.trace(v,{ fileName : "Producer.hx", lineNumber : 60, className : "steamer.Producer", methodName : "log", customParams : [posInfo]});
+			return v;
+		});
+	}
+	,filter: function(f) {
+		return this.filterAsync(function(v,t) {
+			t(f(v));
+		});
+	}
+	,filterAsync: function(f) {
+		var _g = this;
+		return new steamer.Producer(function(forward) {
+			_g.feed(steamer.Bus.passOn(function(value) {
+				try {
+					var t = function(v) {
+						if(v) forward(steamer.Pulse.Emit(value));
+					};
+					f(value,t);
+				} catch( $e0 ) {
+					if( js.Boot.__instanceof($e0,Error) ) {
+						var e = $e0;
+						forward(steamer.Pulse.Fail(e));
+					} else {
+					var e1 = $e0;
+					forward(steamer.Pulse.Fail(new Error(Std.string(e1))));
+					}
+				}
+			},forward));
+		},this.endOnError);
+	}
+	,merge: function(other) {
+		var _g = this;
+		var ended = false;
+		return new steamer.Producer(function(forward) {
+			var emit = function(v) {
+				forward(steamer.Pulse.Emit(v));
+			};
+			var end = function() {
+				if(ended) forward(steamer.Pulse.End); else ended = true;
+			};
+			var fail = function(error) {
+				forward(steamer.Pulse.Fail(error));
+			};
+			_g.feed(new steamer.Bus(emit,end,fail));
+			other.feed(new steamer.Bus(emit,end,fail));
+		},this.endOnError);
+	}
 	,__class__: steamer.Producer
 };
-steamer.BusConsumer = function(emit,end,fail) {
+steamer.Bus = function(emit,end,fail) {
 	this.emit = emit;
 	this.end = end;
 	this.fail = fail;
 };
-steamer.BusConsumer.__name__ = ["steamer","BusConsumer"];
-steamer.BusConsumer.passOn = function(emit,forward) {
-	return new steamer.BusConsumer(emit,function() {
+steamer.Bus.__name__ = ["steamer","Bus"];
+steamer.Bus.passOn = function(emit,forward) {
+	return new steamer.Bus(emit,function() {
 		forward(steamer.Pulse.End);
 	},function(error) {
 		forward(steamer.Pulse.Fail(error));
 	});
 };
-steamer.BusConsumer.prototype = {
+steamer.Bus.prototype = {
 	emit: null
 	,end: null
 	,fail: null
@@ -800,7 +858,7 @@ steamer.BusConsumer.prototype = {
 			break;
 		}
 	}
-	,__class__: steamer.BusConsumer
+	,__class__: steamer.Bus
 };
 steamer.Pulse = { __ename__ : ["steamer","Pulse"], __constructs__ : ["Emit","End","Fail"] };
 steamer.Pulse.Emit = function(value) { var $x = ["Emit",0,value]; $x.__enum__ = steamer.Pulse; $x.toString = $estr; return $x; };

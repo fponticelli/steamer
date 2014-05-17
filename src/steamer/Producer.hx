@@ -38,7 +38,7 @@ class Producer<T> {
 
 	public function mapAsync<TOut>(transform : T -> (TOut -> Void) -> Void) : Producer<TOut> {
 		return new Producer(function(forward : Pulse<TOut> -> Void) {
-			this.feed(BusConsumer.passOn(
+			this.feed(Bus.passOn(
 				function(value : T) {
 					try {
 						function t(v : TOut) forward(Emit(v));
@@ -54,12 +54,61 @@ class Producer<T> {
 		}, endOnError);
 	}
 
+	public function log(prefix : String, ?posInfo : haxe.PosInfos) {
+		prefix = prefix == null ? '': '${prefix}: ';
+		return map(function(v) {
+			trace(v, posInfo);
+			return v;
+		});
+	}
+
+	public function filter(f : T -> Bool) : Producer<T> {
+		return filterAsync(function(v, t) t(f(v)));
+	}
+
+	public function filterAsync(f : T -> (Bool -> Void) -> Void) : Producer<T> {
+		return new Producer(function(forward : Pulse<T> -> Void) {
+			this.feed(Bus.passOn(
+				function(value : T) {
+					try {
+						function t(v : Bool) if(v) forward(Emit(value));
+						f(value, t);
+					} catch(e : Error) {
+						forward(Fail(e));
+					} catch(e : Dynamic) {
+						forward(Fail(new Error(Std.string(e))));
+					}
+				},
+				forward
+			));
+		}, endOnError);
+	}
+
+	public function merge(other : Producer<T>) : Producer<T> {
+		var ended  = false;
+
+		return new Producer(function(forward : Pulse<T> -> Void) {
+			function emit(v) {
+				forward(Emit(v));
+			}
+			function end() {
+				if(ended)
+					forward(End);
+				else
+					ended = true;
+			}
+			function fail(error) {
+				forward(Fail(error));
+			}
+
+			this.feed(new Bus(emit, end, fail));
+			other.feed(new Bus(emit, end, fail));
+		}, endOnError);
+	}
+
 	// public function reduce(acc : TOut, TOut -> T) : Producer<TOut>
 	// public function debounce(delay : Int) : Producer<T>
-	// public function log(prefix : String) : Producer<T>
 	// public function distinct() : Producer<T> // or unique
-	// public function filter(f : T -> Bool) : Producer<T>
-	// public function merge(other : Producer<T>) : Producer<T>
 	// public function zip<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> // or sync
 	// public function pair<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>>
 
@@ -74,7 +123,7 @@ class Producer<T> {
 
 	public static function flatMap<T>(producer : Producer<Array<T>>) : Producer<T> {
 		return new Producer(function(forward : Pulse<T> -> Void) {
-			producer.feed(BusConsumer.passOn(
+			producer.feed(Bus.passOn(
 				function(arr : Array<T>) arr.map(function(value) forward(Emit(value))),
 				forward
 			));
@@ -89,9 +138,9 @@ class Producer<T> {
 	}
 }
 
-class BusConsumer<T> {
+class Bus<T> {
 	public static function passOn<TIn, TOut>(emit : TIn -> Void, forward : Pulse<TOut> -> Void) {
-		return new BusConsumer(
+		return new Bus(
 			emit,
 			function() forward(End),
 			function(error) forward(Fail(error))

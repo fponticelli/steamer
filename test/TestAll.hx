@@ -78,4 +78,21 @@ class TestAll {
 				)
 			);
 	}
+
+	public function testFilter() {
+		Producer.ofArray([1,2,3,4,5])
+			.filter(function(v) return v % 2 == 0)
+			.feed(
+				AssertConsumer.ofArray([2,4], Assert.createAsync())
+			);
+	}
+
+	public function testMerge() {
+		Producer
+			.ofArray([1,2,3])
+			.merge(Producer.ofArray([4,5,6]))
+			.feed(
+				AssertConsumer.ofArray([1,2,3,4,5,6], Assert.createAsync())
+			);
+	}
 }
