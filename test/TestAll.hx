@@ -96,12 +96,35 @@ class TestAll {
 			);
 	}
 
-	public function testCombina() {
+	public function testBlend() {
 		Producer
 			.ofArray([1,2,3,4,5])
-			.combine(Producer.ofArray(["a","b","c"]), function(i, s) return s + i)
+			.blend(Producer.ofArray(["a","b","c"]), function(i, s) return s + i)
 			.feed(
 				AssertConsumer.ofArray(["a1","b2","c3"], Assert.createAsync())
+			);
+	}
+
+	public function testConcat() {
+		Producer.ofArray([1]).concat(Producer.ofArray([2,3]))
+			.feed(
+				AssertConsumer.ofArray(
+					[1,2,3],
+					Assert.createAsync()
+				)
+			);
+	}
+
+	public function testPair() {
+		Producer
+			.ofArray([1,2,3])
+			.pair(Producer.ofArray(["a","b","c"]))
+			.feed(
+				AssertConsumer.ofArray([
+					{left: 3, right: "a"},
+					{left: 3, right: "b"},
+					{left: 3, right: "c"}
+				], Assert.createAsync())
 			);
 	}
 }

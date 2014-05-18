@@ -9,8 +9,8 @@ class Producer<T> {
 	var handler : ProducerHandler<T>;
 	var endOnError : Bool;
 	public function new(handler : ProducerHandler<T>, endOnError = true) {
-		this.endOnError = endOnError;
 		this.handler = handler;
+		this.endOnError = endOnError;
 	}
 
 	public function feed(consumer : Consumer<T>) : Void {
@@ -106,6 +106,23 @@ class Producer<T> {
 		}, endOnError);
 	}
 
+	public function concat(other : Producer<T>) : Producer<T> {
+		return new Producer(function(forward : Pulse<T> -> Void) {
+			function emit(v) {
+				forward(Emit(v));
+			}
+			function fail(error) {
+				forward(Fail(error));
+			}
+
+			this.feed(new Bus(
+				emit,
+				function() other.feed(Bus.passOn(emit, forward)),
+				fail
+			));
+		}, endOnError);
+	}
+
 	public function zip<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> {
 		return new Producer(function(forward : Pulse<Tuple<T, TOther>> -> Void) {
 			var ended = false,
@@ -157,13 +174,64 @@ class Producer<T> {
 					forward(Fail(error));
 				}
 			));
-		});
+		}, endOnError);
 	}
 
-	public function combine<TOther, TOut>(other : Producer<TOther>, f : T -> TOther -> TOut) : Producer<TOut> {
+	public function blend<TOther, TOut>(other : Producer<TOther>, f : T -> TOther -> TOut) : Producer<TOut> {
 		return this.zip(other).map(function(tuple) {
 			return f(tuple.left, tuple.right);
 		});
+	}
+
+	public function pair<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> {
+		return new Producer(function(forward : Pulse<Tuple<T, TOther>> -> Void) {
+			var endA  = false,
+				endB  = false,
+				buffA : T = null,
+				buffB : TOther = null;
+
+			function produce() {
+				if(endA && endB) {
+					buffA = null;
+					buffB = null;
+					return forward(End);
+				}
+				if(buffA == null || buffB == null) return;
+				forward(Emit({
+					left  : buffA,
+					right : buffB
+				}));
+			}
+
+			this.feed(new Bus(
+				function(value : T) {
+					buffA = value;
+					produce();
+				},
+				function() {
+					endA = true;
+					produce();
+				},
+				function(error) {
+					forward(Fail(error));
+				}
+			));
+
+			other.feed(new Bus(
+				function(value : TOther) {
+					buffB = value;
+					produce();
+				},
+				function() {
+					endB = true;
+					produce();
+				},
+				function(error) {
+					forward(Fail(error));
+				}
+			));
+
+		}, endOnError);
 	}
 
 	// public function distinct() : Producer<T> // or unique
@@ -198,6 +266,19 @@ class Producer<T> {
 			values.map(function(v) forward(Emit(v)));
 			forward(End);
 		});
+	}
+
+	public static function delayed<T>(producer : Producer<T>, delay : Int) : Producer<T> {
+		return new Producer(function(forward) {
+			producer.feed(new Bus(
+				function(v)
+					Timer.setTimeout(function() forward(Emit(v)), delay),
+				function()
+					Timer.setTimeout(function() forward(End), delay),
+				function(error)
+					Timer.setTimeout(function() forward(Fail(error)), delay)
+			));
+		}, producer.endOnError);
 	}
 }
 

@@ -246,10 +246,16 @@ TestAll.prototype = {
 	,testMerge: function() {
 		steamer.Producer.ofArray([1,2,3]).merge(steamer.Producer.ofArray([4,5,6])).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3,4,5,6],utest.Assert.createAsync()));
 	}
-	,testCombina: function() {
-		steamer.Producer.ofArray([1,2,3,4,5]).combine(steamer.Producer.ofArray(["a","b","c"]),function(i,s) {
+	,testBlend: function() {
+		steamer.Producer.ofArray([1,2,3,4,5]).blend(steamer.Producer.ofArray(["a","b","c"]),function(i,s) {
 			return s + i;
 		}).feed(steamer.consumers.AssertConsumer.ofArray(["a1","b2","c3"],utest.Assert.createAsync()));
+	}
+	,testConcat: function() {
+		steamer.Producer.ofArray([1]).concat(steamer.Producer.ofArray([2,3])).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3],utest.Assert.createAsync()));
+	}
+	,testPair: function() {
+		steamer.Producer.ofArray([1,2,3]).pair(steamer.Producer.ofArray(["a","b","c"])).feed(steamer.consumers.AssertConsumer.ofArray([{ left : 3, right : "a"},{ left : 3, right : "b"},{ left : 3, right : "c"}],utest.Assert.createAsync()));
 	}
 	,__class__: TestAll
 };
@@ -673,8 +679,8 @@ js.Boot.__instanceof = function(o,cl) {
 var steamer = {};
 steamer.Producer = function(handler,endOnError) {
 	if(endOnError == null) endOnError = true;
-	this.endOnError = endOnError;
 	this.handler = handler;
+	this.endOnError = endOnError;
 };
 steamer.Producer.__name__ = ["steamer","Producer"];
 steamer.Producer.left = function(producer) {
@@ -708,6 +714,23 @@ steamer.Producer.ofArray = function(values) {
 		});
 		forward(steamer.Pulse.End);
 	});
+};
+steamer.Producer.delayed = function(producer,delay) {
+	return new steamer.Producer(function(forward) {
+		producer.feed(new steamer.Bus(function(v) {
+			thx.Timer.setTimeout(function() {
+				forward(steamer.Pulse.Emit(v));
+			},delay);
+		},function() {
+			thx.Timer.setTimeout(function() {
+				forward(steamer.Pulse.End);
+			},delay);
+		},function(error) {
+			thx.Timer.setTimeout(function() {
+				forward(steamer.Pulse.Fail(error));
+			},delay);
+		}));
+	},producer.endOnError);
 };
 steamer.Producer.prototype = {
 	handler: null
@@ -829,6 +852,20 @@ steamer.Producer.prototype = {
 			other.feed(new steamer.Bus(emit,end,fail));
 		},this.endOnError);
 	}
+	,concat: function(other) {
+		var _g = this;
+		return new steamer.Producer(function(forward) {
+			var emit = function(v) {
+				forward(steamer.Pulse.Emit(v));
+			};
+			var fail = function(error) {
+				forward(steamer.Pulse.Fail(error));
+			};
+			_g.feed(new steamer.Bus(emit,function() {
+				other.feed(steamer.Bus.passOn(emit,forward));
+			},fail));
+		},this.endOnError);
+	}
 	,zip: function(other) {
 		var _g = this;
 		return new steamer.Producer(function(forward) {
@@ -867,12 +904,48 @@ steamer.Producer.prototype = {
 			},function(error1) {
 				forward(steamer.Pulse.Fail(error1));
 			}));
-		});
+		},this.endOnError);
 	}
-	,combine: function(other,f) {
+	,blend: function(other,f) {
 		return this.zip(other).map(function(tuple) {
 			return f(tuple.left,tuple.right);
 		});
+	}
+	,pair: function(other) {
+		var _g = this;
+		return new steamer.Producer(function(forward) {
+			var endA = false;
+			var endB = false;
+			var buffA = null;
+			var buffB = null;
+			var produce = function() {
+				if(endA && endB) {
+					buffA = null;
+					buffB = null;
+					return forward(steamer.Pulse.End);
+				}
+				if(buffA == null || buffB == null) return;
+				forward(steamer.Pulse.Emit({ left : buffA, right : buffB}));
+			};
+			_g.feed(new steamer.Bus(function(value) {
+				buffA = value;
+				produce();
+			},function() {
+				endA = true;
+				produce();
+			},function(error) {
+				forward(steamer.Pulse.Fail(error));
+			}));
+			other.feed(new steamer.Bus(function(value1) {
+				buffB = value1;
+				produce();
+			},function() {
+				endB = true;
+				produce();
+			},function(error1) {
+				forward(steamer.Pulse.Fail(error1));
+			}));
+		},this.endOnError);
 	}
 	,__class__: steamer.Producer
 };
