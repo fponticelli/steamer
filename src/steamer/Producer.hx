@@ -295,6 +295,18 @@ class Producer<T> {
 	}
 }
 
+class CancellableProducer<T> extends Producer<T> {
+	var doCancel : Void -> Void;
+	public function new(handler : ProducerHandler<T>, cancel : Void -> Void, endOnError = true) {
+		doCancel = cancel;
+		super(handler, endOnError);
+	}
+
+	public function cancel() {
+		doCancel();
+	}
+}
+
 class Bus<T> {
 	public static function passOn<TIn, TOut>(emit : TIn -> Void, forward : Pulse<TOut> -> Void) {
 		return new Bus(

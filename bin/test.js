@@ -960,6 +960,20 @@ steamer.Producer.prototype = {
 	}
 	,__class__: steamer.Producer
 };
+steamer.CancellableProducer = function(handler,cancel,endOnError) {
+	if(endOnError == null) endOnError = true;
+	this.doCancel = cancel;
+	steamer.Producer.call(this,handler,endOnError);
+};
+steamer.CancellableProducer.__name__ = ["steamer","CancellableProducer"];
+steamer.CancellableProducer.__super__ = steamer.Producer;
+steamer.CancellableProducer.prototype = $extend(steamer.Producer.prototype,{
+	doCancel: null
+	,cancel: function() {
+		this.doCancel();
+	}
+	,__class__: steamer.CancellableProducer
+});
 steamer.Bus = function(emit,end,fail) {
 	this.emit = emit;
 	this.end = end;
