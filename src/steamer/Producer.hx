@@ -15,7 +15,7 @@ class Producer<T> {
 
 	public function feed(consumer : Consumer<T>) : Void {
 		var ended = false;
-		function pulse(v : Pulse<T>) {
+		function sendPulse(v : Pulse<T>) {
 			switch(v) {
 				case _ if(ended):
 					throw new Error("Feed already reached end but still receiving pulses: ${v}");
@@ -29,7 +29,7 @@ class Producer<T> {
 					Timer.setImmediate(consumer.onPulse.bind(v));
 			}
 		}
-		handler(pulse);
+		handler(sendPulse);
 	}
 
 	public function map<TOut>(transform : T -> TOut) : Producer<TOut> {
@@ -106,16 +106,79 @@ class Producer<T> {
 		}, endOnError);
 	}
 
+	public function zip<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> {
+		return new Producer(function(forward : Pulse<Tuple<T, TOther>> -> Void) {
+			var ended = false,
+				endA  = false,
+				endB  = false,
+				buffA : Array<T> = [],
+				buffB : Array<TOther> = [];
+
+			function produce() {
+				if(((buffA.length == 0 && endA) || (buffB.length == 0 && endB)) && !ended) {
+					buffA = null;
+					buffB = null;
+					ended = true;
+					return forward(End);
+				}
+				if(buffA.length == 0 || buffB.length == 0) return;
+				forward(Emit({
+					left  : buffA.shift(),
+					right : buffB.shift()
+				}));
+			}
+
+			this.feed(new Bus(
+				function(value : T) {
+					if(ended) return;
+					buffA.push(value);
+					produce();
+				},
+				function() {
+					endA = true;
+					produce();
+				},
+				function(error) {
+					forward(Fail(error));
+				}
+			));
+
+			other.feed(new Bus(
+				function(value : TOther) {
+					if(ended) return;
+					buffB.push(value);
+					produce();
+				},
+				function() {
+					endB = true;
+					produce();
+				},
+				function(error) {
+					forward(Fail(error));
+				}
+			));
+		});
+	}
+
+	public function combine<TOther, TOut>(other : Producer<TOther>, f : T -> TOther -> TOut) : Producer<TOut> {
+		return this.zip(other).map(function(tuple) {
+			return f(tuple.left, tuple.right);
+		});
+	}
+
+	// public function distinct() : Producer<T> // or unique
+	// public function window(length : Int, fillBeforeEmit = false) : Producer<T> // or unique
 	// public function reduce(acc : TOut, TOut -> T) : Producer<TOut>
 	// public function debounce(delay : Int) : Producer<T>
-	// public function distinct() : Producer<T> // or unique
+	// exact pair
 	// public function zip<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> // or sync
 	// public function pair<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>>
 
-	public static function keepLeft<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TLeft>
+
+	public static function left<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TLeft>
 		return producer.map(function(v) return v.left);
 
-	public static function keepRight<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TRight>
+	public static function right<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TRight>
 		return producer.map(function(v) return v.right);
 
 	public static function negate(producer : Producer<Bool>)

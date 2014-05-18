@@ -95,4 +95,13 @@ class TestAll {
 				AssertConsumer.ofArray([1,2,3,4,5,6], Assert.createAsync())
 			);
 	}
+
+	public function testCombina() {
+		Producer
+			.ofArray([1,2,3])
+			.combine(Producer.ofArray(["a","b","c"]), function(i, s) return s + i)
+			.feed(
+				AssertConsumer.ofArray(["a1","b2","c3"], Assert.createAsync())
+			);
+	}
 }
