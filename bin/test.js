@@ -247,7 +247,7 @@ TestAll.prototype = {
 		steamer.Producer.ofArray([1,2,3]).merge(steamer.Producer.ofArray([4,5,6])).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3,4,5,6],utest.Assert.createAsync()));
 	}
 	,testCombina: function() {
-		steamer.Producer.ofArray([1,2,3]).combine(steamer.Producer.ofArray(["a","b","c"]),function(i,s) {
+		steamer.Producer.ofArray([1,2,3,4,5]).combine(steamer.Producer.ofArray(["a","b","c"]),function(i,s) {
 			return s + i;
 		}).feed(steamer.consumers.AssertConsumer.ofArray(["a1","b2","c3"],utest.Assert.createAsync()));
 	}
