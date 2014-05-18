@@ -234,7 +234,20 @@ class Producer<T> {
 		}, endOnError);
 	}
 
-	// public function distinct() : Producer<T> // or unique
+	public function distinct() : Producer<T> {
+		var last : T = null;
+		return new Producer(function(forward) {
+			this.feed(Bus.passOn(
+				function(v) {
+					if(v == last) return;
+					last = v;
+					forward(Emit(v));
+				},
+				forward
+			));
+		}, endOnError);
+	}
+
 	// public function window(length : Int, fillBeforeEmit = false) : Producer<T> // or unique
 	// public function reduce(acc : TOut, TOut -> T) : Producer<TOut>
 	// public function debounce(delay : Int) : Producer<T>

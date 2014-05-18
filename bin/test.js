@@ -947,6 +947,17 @@ steamer.Producer.prototype = {
 			}));
 		},this.endOnError);
 	}
+	,distinct: function() {
+		var _g = this;
+		var last = null;
+		return new steamer.Producer(function(forward) {
+			_g.feed(steamer.Bus.passOn(function(v) {
+				if(v == last) return;
+				last = v;
+				forward(steamer.Pulse.Emit(v));
+			},forward));
+		},this.endOnError);
+	}
 	,__class__: steamer.Producer
 };
 steamer.Bus = function(emit,end,fail) {
