@@ -127,4 +127,19 @@ class TestAll {
 				], Assert.createAsync())
 			);
 	}
+
+	public function testTimedArray() {
+		var start = Date.now().getTime();
+		Producer
+			.ofTimedArray([1,2,3],20)
+			.feed(
+				AssertConsumer.ofArray(
+					[1,2,3],
+					Assert.createAsync(function() {
+						var span = Date.now().getTime() - start;
+						Assert.isTrue(span > 30, 'should take about 40ms but it took $span');
+					})
+				)
+			);
+	}
 }

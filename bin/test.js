@@ -257,6 +257,13 @@ TestAll.prototype = {
 	,testPair: function() {
 		steamer.Producer.ofArray([1,2,3]).pair(steamer.Producer.ofArray(["a","b","c"])).feed(steamer.consumers.AssertConsumer.ofArray([{ left : 3, right : "a"},{ left : 3, right : "b"},{ left : 3, right : "c"}],utest.Assert.createAsync()));
 	}
+	,testTimedArray: function() {
+		var start = new Date().getTime();
+		steamer.Producer.ofTimedArray([1,2,3],20).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3],utest.Assert.createAsync(function() {
+			var span = new Date().getTime() - start;
+			utest.Assert.isTrue(span > 30,"should take about 40ms but it took " + span,{ fileName : "TestAll.hx", lineNumber : 140, className : "TestAll", methodName : "testTimedArray"});
+		})));
+	}
 	,__class__: TestAll
 };
 var ValueType = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
@@ -715,6 +722,9 @@ steamer.Producer.ofArray = function(values) {
 		forward(steamer.Pulse.End);
 	});
 };
+steamer.Producer.ofTimedArray = function(values,delay) {
+	return steamer.Producer.left(steamer.Producer.ofArray(values).zip(new steamer.producers.Interval(delay,values.length)));
+};
 steamer.Producer.delayed = function(producer,delay) {
 	return new steamer.Producer(function(forward) {
 		producer.feed(new steamer.Bus(function(v) {
@@ -805,7 +815,7 @@ steamer.Producer.prototype = {
 	,log: function(prefix,posInfo) {
 		if(prefix == null) prefix = ""; else prefix = "" + prefix + ": ";
 		return this.map(function(v) {
-			haxe.Log.trace(v,{ fileName : "Producer.hx", lineNumber : 60, className : "steamer.Producer", methodName : "log", customParams : [posInfo]});
+			haxe.Log.trace(v,{ fileName : "Producer.hx", lineNumber : 61, className : "steamer.Producer", methodName : "log", customParams : [posInfo]});
 			return v;
 		});
 	}
@@ -958,22 +968,22 @@ steamer.Producer.prototype = {
 			},forward));
 		},this.endOnError);
 	}
+	,sampleBy: function(sampler) {
+		var _g = this;
+		var latest = null;
+		return new steamer.Producer(function(forward) {
+			_g.feed(steamer.Bus.passOn(function(v) {
+				latest = v;
+			},forward));
+			sampler.feed(steamer.Bus.passOn(function(v1) {
+				if(null == latest) return;
+				forward(steamer.Pulse.Emit({ left : latest, right : v1}));
+				latest = null;
+			},forward));
+		},this.endOnError);
+	}
 	,__class__: steamer.Producer
 };
-steamer.CancellableProducer = function(handler,cancel,endOnError) {
-	if(endOnError == null) endOnError = true;
-	this.doCancel = cancel;
-	steamer.Producer.call(this,handler,endOnError);
-};
-steamer.CancellableProducer.__name__ = ["steamer","CancellableProducer"];
-steamer.CancellableProducer.__super__ = steamer.Producer;
-steamer.CancellableProducer.prototype = $extend(steamer.Producer.prototype,{
-	doCancel: null
-	,cancel: function() {
-		this.doCancel();
-	}
-	,__class__: steamer.CancellableProducer
-});
 steamer.Bus = function(emit,end,fail) {
 	this.emit = emit;
 	this.end = end;

@@ -1,5 +1,6 @@
 package steamer;
 
+import steamer.producers.Interval;
 import steamer.Pulse;
 import thx.Error;
 import thx.Timer;
@@ -248,12 +249,30 @@ class Producer<T> {
 		}, endOnError);
 	}
 
+	public function sampleBy<TSampler>(sampler : Producer<TSampler>) : Producer<Tuple<T, TSampler>> {
+		var latest : T = null;
+		return new Producer(function(forward) {
+			this.feed(Bus.passOn(
+				function(v) latest = v,
+				forward
+			));
+			sampler.feed(Bus.passOn(
+				function(v) {
+					// skip if this hasn't produced anything yet or has been cleared
+					if(null == latest) return;
+					forward(Emit({ left : latest, right : v }));
+					latest = null;
+				},
+				forward
+			));
+		}, endOnError);
+	}
+
 	// public function window(length : Int, fillBeforeEmit = false) : Producer<T> // or unique
 	// public function reduce(acc : TOut, TOut -> T) : Producer<TOut>
 	// public function debounce(delay : Int) : Producer<T>
 	// exact pair
 	// public function zip<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> // or sync
-	// public function pair<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>>
 
 
 	public static function left<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TLeft>
@@ -281,6 +300,10 @@ class Producer<T> {
 		});
 	}
 
+	public static function ofTimedArray<T>(values : Array<T>, delay : Int) : Producer<T> {
+		return left(ofArray(values).zip(new Interval(delay, values.length)));
+	}
+
 	public static function delayed<T>(producer : Producer<T>, delay : Int) : Producer<T> {
 		return new Producer(function(forward) {
 			producer.feed(new Bus(
@@ -292,18 +315,6 @@ class Producer<T> {
 					Timer.setTimeout(function() forward(Fail(error)), delay)
 			));
 		}, producer.endOnError);
-	}
-}
-
-class CancellableProducer<T> extends Producer<T> {
-	var doCancel : Void -> Void;
-	public function new(handler : ProducerHandler<T>, cancel : Void -> Void, endOnError = true) {
-		doCancel = cancel;
-		super(handler, endOnError);
-	}
-
-	public function cancel() {
-		doCancel();
 	}
 }
 
