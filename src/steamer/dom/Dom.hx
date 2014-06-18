@@ -6,10 +6,9 @@ import steamer.Consumer;
 import steamer.Producer;
 
 class Dom {
-	public static function produceEvent(el : Element, name : String) : CancellableProducer<Event> {
-		var cancel = null;
-		return new CancellableProducer(
-			function(forward) {
+	public static function produceEvent(el : Element, name : String) : { producer : Producer<Event>, cancel : Void -> Void } {
+		var cancel = null,
+			producer =  new Producer(function(forward) {
 				var f = function(e) {
 					forward(Emit(e));
 				};
@@ -18,11 +17,8 @@ class Dom {
 					el.removeEventListener(name, f, false);
 					forward(End);
 				};
-			},
-			function() {
-				cancel();
-			}
-		);
+			});
+		return { producer : producer, cancel : cancel };
 	}
 
 	public static function consumeText(el : Element) : Consumer<String>
@@ -40,6 +36,14 @@ class Dom {
 				el.classList.add(name);
 			else
 				el.classList.remove(name);
+		});
+
+	public static function consumeToggleVisibility<T>(el : Element) : Consumer<Bool>
+		return createConsumer(function(v) {
+			if(v)
+				el.style.display = '';
+			else
+				el.style.display = 'none';
 		});
 
 	static function createConsumer<T>(f : T -> Void) {
