@@ -44,10 +44,10 @@ class Dom {
 		);
 	}
 
-	public static function consumeAttribute<T>(el : Element, name : String) : Consumer<String> {
-		var originalValue = el.getAttribute(name);
-		function consume(value : String)
-			el.setAttribute(name, value);
+	public static function consumeAttribute<T>(el : Element, name : String) : Consumer<T> {
+		var originalValue : T = cast el.getAttribute(name);
+		function consume(value : T)
+			el.setAttribute(name, cast value);
 		return new SimpleConsumer(
 			consume,
 			null == originalValue ?

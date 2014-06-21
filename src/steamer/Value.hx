@@ -56,11 +56,11 @@ class Value<T> extends Producer<T> {
 		forward(End);
 	}
 
-	public function onValue(pulse : Pulse<T>) {
+	public function onPulse(pulse : Pulse<T>) {
 		switch pulse {
 			case Emit(v): value = v;
-			case Fail(e): throw e;
-			case End:
+			case Fail(e): forward(Fail(e));
+			case End:     forward(End);
 		}
 	}
 
