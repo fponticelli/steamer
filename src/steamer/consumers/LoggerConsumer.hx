@@ -1,11 +1,21 @@
 package steamer.consumers;
 
+import haxe.PosInfos;
 import steamer.Pulse;
 
 class LoggerConsumer {
 	public var prefix : String;
-	public function new(?prefix : String) {
+	public var pos : PosInfos;
+	public function new(?prefix : String, ?pos : PosInfos) {
 		this.prefix = prefix;
+		this.pos = pos;
+#if js
+		function p()
+			return ' ---> ' + pos.className + '.' + pos.methodName + '() at ' + pos.lineNumber;
+		log   = function(v) untyped __js__('console').log(v, p());
+		warn  = function(v) untyped __js__('console').warn(v, p());
+		error = function(v) untyped __js__('console').error(v, p());
+#end
 	}
 
 	public function onPulse(pulse : Pulse<String>) {
@@ -22,18 +32,11 @@ class LoggerConsumer {
 	function p(v : String)
 		return (null == prefix ? '' : prefix + ': ') + v;
 
-	static dynamic function log(v : String)
-		trace(v);
-	static dynamic function warn(v : String)
-		trace('[W] $v');
-	static dynamic function error(v : String)
-		trace('[E] $v');
+	dynamic function log(v : String)
+		haxe.Log.trace(v, pos);
+	dynamic function warn(v : String)
+		haxe.Log.trace('[W] $v', pos);
+	dynamic function error(v : String)
+		haxe.Log.trace('[E] $v', pos);
 
-#if js
-	static function __init__() {
-		log   = function(v) untyped __js__('console').log(v);
-		warn  = function(v) untyped __js__('console').warn(v);
-		error = function(v) untyped __js__('console').error(v);
-	}
-#end
 }

@@ -21,13 +21,13 @@ class Producer<T> {
 				case _ if(ended):
 					throw new Error("Feed already reached end but still receiving pulses: ${v}");
 				case Fail(_) if(endOnError):
-					Timer.setImmediate(consumer.onPulse.bind(v));
-					Timer.setImmediate(consumer.onPulse.bind(End));
+					Timer.setImmediate(consumer.toImplementation().onPulse.bind(v));
+					Timer.setImmediate(consumer.toImplementation().onPulse.bind(End));
 				case End:
 					ended = true;
-					Timer.setImmediate(consumer.onPulse.bind(End));
+					Timer.setImmediate(consumer.toImplementation().onPulse.bind(End));
 				case _:
-					Timer.setImmediate(consumer.onPulse.bind(v));
+					Timer.setImmediate(consumer.toImplementation().onPulse.bind(v));
 			}
 		}
 		handler(sendPulse);
@@ -55,10 +55,10 @@ class Producer<T> {
 		}, endOnError);
 	}
 
-	public function log(prefix : String, ?posInfo : haxe.PosInfos) {
+	public function log(?prefix : String, ?posInfo : haxe.PosInfos) {
 		prefix = prefix == null ? '': '${prefix}: ';
 		return map(function(v) {
-			trace(v, posInfo);
+			haxe.Log.trace(v, posInfo);
 			return v;
 		});
 	}
@@ -235,14 +235,29 @@ class Producer<T> {
 		}, endOnError);
 	}
 
-	public function distinct() : Producer<T> {
+	public function distinct(?equals : T -> T -> Bool) : Producer<T> {
 		var last : T = null;
+		if(null == equals)
+			equals = function(a, b) return a == b;
 		return new Producer(function(forward) {
 			this.feed(Bus.passOn(
 				function(v) {
-					if(v == last) return;
+					if(equals(v, last)) return;
 					last = v;
 					forward(Emit(v));
+				},
+				forward
+			));
+		}, endOnError);
+	}
+
+	public  function debounce(delay : Int) : Producer<T> {
+		var id : TimerID = null;
+		return new Producer(function(forward) {
+			this.feed(Bus.passOn(
+				function(v : T) {
+					Timer.clearTimer(id);
+					id = Timer.setTimeout(forward.bind(Emit(v)), delay);
 				},
 				forward
 			));
@@ -273,7 +288,6 @@ class Producer<T> {
 	// public function debounce(delay : Int) : Producer<T>
 	// exact pair
 	// public function zip<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> // or sync
-
 
 	public static function left<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TLeft>
 		return producer.map(function(v) return v.left);
@@ -319,6 +333,14 @@ class Producer<T> {
 }
 
 class Bus<T> {
+	public static function feed<T>(forward : Pulse<T> -> Void) {
+		return new Bus(
+			function(v) forward(Emit(v)),
+			function() forward(End),
+			function(error) forward(Fail(error))
+		);
+	}
+
 	public static function passOn<TIn, TOut>(emit : TIn -> Void, forward : Pulse<TOut> -> Void) {
 		return new Bus(
 			emit,
