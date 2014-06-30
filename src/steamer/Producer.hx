@@ -34,6 +34,10 @@ class Producer<T> {
 		handler(sendPulse);
 	}
 
+	public function mapToOption() : Producer<Option<T>> {
+		return map(function(v) return null == v ? None : Some(v));
+	}
+
 	public function map<TOut>(transform : T -> TOut) : Producer<TOut> {
 		return mapAsync(function(v, t) t(transform(v)));
 	}
@@ -314,6 +318,14 @@ class Producer<T> {
 		return producer
 			.filter(function(opt) return switch opt { case Some(_): true; case _: false; })
 			.map(function(opt) return switch opt { case Some(v) : v; case _: throw 'filterOption failed'; });
+
+	public static function toValue<T>(producer : Producer<Option<T>>) : Producer<Null<T>>
+		return producer
+			.map(function(opt) return switch opt { case Some(v) : v; case _: null; });
+
+	public static function skipNull<T>(producer : Producer<Null<T>>) : Producer<T>
+		return producer
+			.filter(function(value) return null != value);
 
 	public static function left<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TLeft>
 		return producer.map(function(v) return v.left);
