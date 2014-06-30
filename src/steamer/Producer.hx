@@ -316,12 +316,16 @@ class Producer<T> {
 
 	public static function filterOption<T>(producer : Producer<Option<T>>) : Producer<T>
 		return producer
-			.filter(function(opt) return switch opt { case Some(_): true; case _: false; })
-			.map(function(opt) return switch opt { case Some(v) : v; case _: throw 'filterOption failed'; });
+			.filter(function(opt) return switch opt { case Some(_): true; case None: false; })
+			.map(function(opt) return switch opt { case Some(v) : v; case None: throw 'filterOption failed'; });
 
 	public static function toValue<T>(producer : Producer<Option<T>>) : Producer<Null<T>>
 		return producer
-			.map(function(opt) return switch opt { case Some(v) : v; case _: null; });
+			.map(function(opt) return switch opt { case Some(v) : v; case None: null; });
+
+	public static function toBool<T>(producer : Producer<Option<T>>) : Producer<Bool>
+		return producer
+			.map(function(opt) return switch opt { case Some(_) : true; case None: false; });
 
 	public static function skipNull<T>(producer : Producer<Null<T>>) : Producer<T>
 		return producer
