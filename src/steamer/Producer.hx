@@ -60,6 +60,14 @@ class Producer<T> {
 		}, endOnError);
 	}
 
+	public function toTrue() : Producer<Bool> {
+		return map(function(_) return true);
+	}
+
+	public function toFalse() : Producer<Bool> {
+		return map(function(_) return false);
+	}
+
 	public function log(?prefix : String, ?posInfo : haxe.PosInfos) {
 		prefix = prefix == null ? '': '${prefix}: ';
 		return map(function(v) {
@@ -302,6 +310,24 @@ class Producer<T> {
 					if(acc.length > n)
 						acc.shift();
 					forward(Emit(acc));
+				},
+				forward
+			));
+		}, endOnError);
+	}
+
+	public function previous() : Producer<T> {
+		return new Producer(function(forward) {
+			var isFirst   = true,
+				state : T = null;
+			this.feed(Bus.passOn(
+				function(v) {
+					if(isFirst) {
+						isFirst = false;
+					} else {
+						forward(Emit(state));
+					}
+					state = v;
 				},
 				forward
 			));
