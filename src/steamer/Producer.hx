@@ -5,6 +5,7 @@ import steamer.Pulse;
 import thx.Error;
 import thx.Timer;
 import thx.Tuple;
+import haxe.ds.Option;
 
 class Producer<T> {
 	var handler : ProducerHandler<T>;
@@ -63,9 +64,14 @@ class Producer<T> {
 		});
 	}
 
-	public function filter(f : T -> Bool) : Producer<T> {
+	public function filterMap<TOut>(transform : T -> Option<TOut>) : Producer<TOut>
+		return filterMapAsync(function(v, t) t(transform(v)));
+
+	public function filterMapAsync<TOut>(transform : T -> (Option<TOut> -> Void) -> Void) : Producer<TOut>
+		return Producer.filterOption(mapAsync(transform));
+
+	public function filter(f : T -> Bool) : Producer<T>
 		return filterAsync(function(v, t) t(f(v)));
-	}
 
 	public function filterAsync(f : T -> (Bool -> Void) -> Void) : Producer<T> {
 		return new Producer(function(forward : Pulse<T> -> Void) {
@@ -265,8 +271,8 @@ class Producer<T> {
 	}
 
 	public function sampleBy<TSampler>(sampler : Producer<TSampler>) : Producer<Tuple<T, TSampler>> {
-		var latest : T = null;
 		return new Producer(function(forward) {
+			var latest : T = null;
 			this.feed(Bus.passOn(
 				function(v) latest = v,
 				forward
@@ -283,11 +289,31 @@ class Producer<T> {
 		}, endOnError);
 	}
 
+	public function keep(n : Int) : Producer<Array<T>> {
+		return new Producer(function(forward) {
+			var acc = [];
+			this.feed(Bus.passOn(
+				function(v) {
+					acc.push(v);
+					if(acc.length > n)
+						acc.shift();
+					forward(Emit(acc));
+				},
+				forward
+			));
+		}, endOnError);
+	}
+
 	// public function window(length : Int, fillBeforeEmit = false) : Producer<T> // or unique
 	// public function reduce(acc : TOut, TOut -> T) : Producer<TOut>
 	// public function debounce(delay : Int) : Producer<T>
 	// exact pair
 	// public function zip<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> // or sync
+
+	public static function filterOption<T>(producer : Producer<Option<T>>) : Producer<T>
+		return producer
+			.filter(function(opt) return switch opt { case Some(_): true; case _: false; })
+			.map(function(opt) return switch opt { case Some(v) : v; case _: throw 'filterOption failed'; });
 
 	public static function left<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TLeft>
 		return producer.map(function(v) return v.left);
