@@ -3,6 +3,7 @@ package steamer;
 import steamer.producers.Interval;
 import steamer.Pulse;
 import thx.Error;
+import thx.Nil;
 import thx.Timer;
 import thx.Tuple;
 import haxe.ds.Option;
@@ -34,7 +35,7 @@ class Producer<T> {
 		handler(sendPulse);
 	}
 
-	public function mapToOption() : Producer<Option<T>> {
+	public function toOption() : Producer<Option<T>> {
 		return map(function(v) return null == v ? None : Some(v));
 	}
 
@@ -58,6 +59,10 @@ class Producer<T> {
 				forward
 			));
 		}, endOnError);
+	}
+
+	public function toNil() : Producer<Nil> {
+		return map(function(_) return nil);
 	}
 
 	public function toTrue() : Producer<Bool> {
@@ -84,6 +89,9 @@ class Producer<T> {
 
 	public function filter(f : T -> Bool) : Producer<T>
 		return filterAsync(function(v, t) t(f(v)));
+
+	public function filterValue(value : T) : Producer<T>
+		return filterAsync(function(v, t) t(v == value));
 
 	public function filterAsync(f : T -> (Bool -> Void) -> Void) : Producer<T> {
 		return new Producer(function(forward : Pulse<T> -> Void) {
@@ -398,6 +406,12 @@ class Producer<T> {
 			));
 		}, producer.endOnError);
 	}
+}
+
+class StringProducer {
+	public static function toBool(producer : Producer<String>) : Producer<Bool>
+		return producer
+			.map(function(s) return s != null && s != "");
 }
 
 class Bus<T> {

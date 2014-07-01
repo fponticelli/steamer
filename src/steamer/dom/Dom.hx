@@ -2,16 +2,35 @@ package steamer.dom;
 
 import js.html.Element;
 import js.html.Event;
+import js.html.KeyboardEvent;
 import steamer.Consumer;
 import steamer.Producer;
 import thx.Error;
 import thx.Assert;
+using StringTools;
 
 class Dom {
 	public static function produceEvent(el : Element, name : String) : EventProducer {
 		var cancel = null,
 			producer =  new Producer(function(forward) {
 				var f = function(e) {
+					forward(Emit(e));
+				};
+				el.addEventListener(name, f, false);
+				cancel = function() {
+					el.removeEventListener(name, f, false);
+					forward(End);
+				};
+			});
+		return { producer : producer, cancel : cancel };
+	}
+
+	public static function produceKeyboardEvent(el : Element, name : String) : KeyboardEventProducer {
+		if(!name.startsWith('key'))
+			name = 'key$name';
+		var cancel = null,
+			producer =  new Producer(function(forward) {
+				var f = function(e : KeyboardEvent) {
 					forward(Emit(e));
 				};
 				el.addEventListener(name, f, false);
@@ -55,11 +74,13 @@ class Dom {
 		};
 	}
 
-	public static function consumeToggleAttribute<T>(el : Element, name : String) : Consumer<Bool> {
+	public static function consumeToggleAttribute<T>(el : Element, name : String, ?value : String) : Consumer<Bool> {
 		var originalValue = el.hasAttribute(name);
+		if(null == value)
+			value = name;
 		function consume(v : Bool)
 			if(v)
-				el.setAttribute(name, name);
+				el.setAttribute(name, value);
 			else
 				el.removeAttribute(name);
 		return {
@@ -102,5 +123,10 @@ class Dom {
 
 typedef EventProducer = {
 	producer : Producer<Event>,
+	cancel : Void -> Void
+}
+
+typedef KeyboardEventProducer = {
+	producer : Producer<KeyboardEvent>,
 	cancel : Void -> Void
 }
