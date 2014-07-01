@@ -29,7 +29,7 @@ class Dom {
 			el.innerText = text;
 		return {
 			emit : consume,
-			end : consume.bind(originalText)
+			end  : consume.bind(originalText)
 		};
 	}
 
@@ -39,7 +39,7 @@ class Dom {
 			el.innerHTML = html;
 		return {
 			emit : consume,
-			end : consume.bind(originalHtml)
+			end  : consume.bind(originalHtml)
 		};
 	}
 
@@ -49,7 +49,7 @@ class Dom {
 			el.setAttribute(name, cast value);
 		return {
 			emit : consume,
-			end : null == originalValue ?
+			end  : null == originalValue ?
 					function() el.removeAttribute(name) :
 					consume.bind(originalValue)
 		};
@@ -64,12 +64,12 @@ class Dom {
 				el.removeAttribute(name);
 		return {
 			emit : consume,
-			end : consume.bind(originalValue)
+			end  : consume.bind(originalValue)
 		};
 	}
 
 	public static function consumeToggleClass<T>(el : Element, name : String) : Consumer<Bool> {
-		var originalValue = el.hasAttribute(name);
+		var originalValue = el.classList.contains(name);
 		function consume(v : Bool)
 			if(v)
 				el.classList.add(name);
@@ -77,7 +77,7 @@ class Dom {
 				el.classList.remove(name);
 		return {
 			emit : consume,
-			end : consume.bind(originalValue)
+			end  : consume.bind(originalValue)
 		};
 	}
 
@@ -95,7 +95,7 @@ class Dom {
 		}
 		return {
 			emit : consume,
-			end : consume.bind(true)
+			end  : consume.bind(true)
 		};
 	}
 }
