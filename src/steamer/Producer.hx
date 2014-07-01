@@ -71,7 +71,7 @@ class Producer<T> {
 	public function log(?prefix : String, ?posInfo : haxe.PosInfos) {
 		prefix = prefix == null ? '': '${prefix}: ';
 		return map(function(v) {
-			haxe.Log.trace(v, posInfo);
+			haxe.Log.trace('$prefix$v', posInfo);
 			return v;
 		});
 	}
