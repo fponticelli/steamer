@@ -26,5 +26,6 @@ class MultiProducer<T> extends Producer<T> {
 		for(producer in producers)
 			producer.feed(consumer);
 		consumers.push(consumer);
+		return this;
 	}
 }

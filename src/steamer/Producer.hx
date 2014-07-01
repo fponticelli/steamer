@@ -16,7 +16,7 @@ class Producer<T> {
 		this.endOnError = endOnError;
 	}
 
-	public function feed(consumer : Consumer<T>) : Void {
+	public function feed(consumer : Consumer<T>) : Producer<T> {
 		var ended = false;
 		function sendPulse(v : Pulse<T>) {
 			switch(v) {
@@ -33,6 +33,7 @@ class Producer<T> {
 			}
 		}
 		handler(sendPulse);
+		return this;
 	}
 
 	public function toOption() : Producer<Option<T>> {

@@ -50,6 +50,7 @@ class Value<T> extends Producer<T> {
 	override function feed(consumer : Consumer<T>) {
 		super.feed(consumer);
 		consumer.toImplementation().onPulse(Emit(value));
+		return this;
 	}
 
 	public function terminate() {
