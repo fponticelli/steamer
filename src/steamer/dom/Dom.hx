@@ -42,6 +42,12 @@ class Dom {
 		return { producer : producer, cancel : cancel };
 	}
 
+	public static function consumeFocus(el : Element) : Consumer<Bool> {
+		return {
+			emit : function(v) v ? el.focus() : el.blur()
+		};
+	}
+
 	public static function consumeText(el : Element) : Consumer<String> {
 		var originalText = el.innerText;
 		function consume(text : String)
