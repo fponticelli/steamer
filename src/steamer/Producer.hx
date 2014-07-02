@@ -113,9 +113,8 @@ class Producer<T> {
 	}
 
 	public function merge(other : Producer<T>) : Producer<T> {
-		var ended  = false;
-
 		return new Producer(function(forward : Pulse<T> -> Void) {
+			var ended  = false;
 			function emit(v) {
 				forward(Emit(v));
 			}
@@ -263,10 +262,10 @@ class Producer<T> {
 	}
 
 	public function distinct(?equals : T -> T -> Bool) : Producer<T> {
-		var last : T = null;
 		if(null == equals)
 			equals = function(a, b) return a == b;
 		return new Producer(function(forward) {
+			var last : T = null;
 			this.feed(Bus.passOn(
 				function(v) {
 					if(equals(v, last)) return;
@@ -279,8 +278,8 @@ class Producer<T> {
 	}
 
 	public  function debounce(delay : Int) : Producer<T> {
-		var id : TimerID = null;
 		return new Producer(function(forward) {
+			var id : TimerID = null;
 			this.feed(Bus.passOn(
 				function(v : T) {
 					Timer.clearTimer(id);
