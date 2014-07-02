@@ -53,7 +53,7 @@ class Value<T> extends Producer<T> {
 		return this;
 	}
 
-	public function terminate() {
+	public function end() {
 		forward(End);
 	}
 
