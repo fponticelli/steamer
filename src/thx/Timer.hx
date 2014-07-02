@@ -1,17 +1,23 @@
 package thx;
 
 class Timer {
-	public static function setInterval(callback : Void -> Void, delay : Int) : TimerID
+	public inline static function setInterval(callback : Void -> Void, delay : Int) : TimerID
 		return untyped __js__('setInterval')(callback, delay);
 
-	public static function setTimeout(callback : Void -> Void, delay : Int) : TimerID
+	public inline static function setTimeout(callback : Void -> Void, delay : Int) : TimerID
 		return untyped __js__('setTimeout')(callback, delay);
 
-	public static function setImmediate(callback : Void -> Void) : TimerID
-		return untyped __js__('setTimeout')(callback, 0);
+	public inline static function setImmediate(callback : Void -> Void) : TimerID
+		return untyped __js__('setImmediate')(callback);
 
-	public static function clearTimer(id : TimerID) : Void
+	public inline static function clearTimer(id : TimerID) : Void
 		return untyped __js__('clearTimeout')(id);
+
+	static function __init__() untyped {
+		var scope : Dynamic = (window || __js__('this'));
+		if(!scope.setImmediate)
+			scope.setImmediate = function(callback) scope.setTimeout(callback, 0);
+	}
 }
 
 extern
