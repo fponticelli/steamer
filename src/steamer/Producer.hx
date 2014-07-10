@@ -112,6 +112,9 @@ class Producer<T> {
 		}, endOnError);
 	}
 
+	public function withValue() : Producer<T>
+		return filter(function(v : T) return v != null);
+
 	public function merge(other : Producer<T>) : Producer<T> {
 		return new Producer(function(forward : Pulse<T> -> Void) {
 			var ended  = false;
