@@ -4,7 +4,7 @@ import steamer.Pulse;
 import steamer.Consumer;
 import steamer.Producer;
 
-import thx.Nil;
+import thx.core.Nil;
 import thx.Timer;
 
 class Interval extends Producer<Nil> {

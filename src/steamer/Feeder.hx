@@ -17,7 +17,7 @@ class Feeder<T> extends Producer<T> {
 		for(f in forwards)
 			f(pulse);
 		switch pulse {
-			case End: forwards = [];
+			case End: cancel();
 			case _:
 		}
 	}
@@ -28,5 +28,9 @@ class Feeder<T> extends Producer<T> {
 			case Fail(e): forward(Fail(e));
 			case End:     forward(End);
 		}
+	}
+
+	public function cancel() {
+		forwards = [];
 	}
 }

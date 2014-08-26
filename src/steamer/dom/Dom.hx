@@ -5,7 +5,7 @@ import js.html.Event;
 import js.html.KeyboardEvent;
 import steamer.Consumer;
 import steamer.Producer;
-import thx.Error;
+import thx.core.Error;
 import thx.Assert;
 using StringTools;
 

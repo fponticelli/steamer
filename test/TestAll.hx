@@ -6,8 +6,8 @@ using steamer.Producer;
 import steamer.Pulse;
 import steamer.consumers.*;
 import steamer.producers.*;
-import thx.Nil;
-
+import thx.core.Nil;
+import thx.core.Tuple;
 
 class TestAll {
 	public static function main() {
@@ -121,9 +121,9 @@ class TestAll {
 			.pair(Producer.ofArray(["a","b","c"]))
 			.feed(
 				AssertConsumer.ofArray([
-					{left: 3, right: "a"},
-					{left: 3, right: "b"},
-					{left: 3, right: "c"}
+					new Tuple2(3, "a"),
+					new Tuple2(3, "b"),
+					new Tuple2(3, "c")
 				], Assert.createAsync())
 			);
 	}

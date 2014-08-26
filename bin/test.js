@@ -225,44 +225,94 @@ TestAll.prototype = {
 		consumer.assertEmpty();
 	}
 	,testInterval: function() {
-		new steamer.producers.Interval(10,5).feed(steamer.consumers.AssertConsumer.ofArray([thx.Nil.nil,thx.Nil.nil,thx.Nil.nil,thx.Nil.nil,thx.Nil.nil],utest.Assert.createAsync()));
+		new steamer.producers.Interval(10,5).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray([thx.core.Nil.nil,thx.core.Nil.nil,thx.core.Nil.nil,thx.core.Nil.nil,thx.core.Nil.nil],utest.Assert.createAsync());
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,testArray: function() {
-		steamer.Producer.ofArray([1,2,3]).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3],utest.Assert.createAsync()));
+		steamer.Producer.ofArray([1,2,3]).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray([1,2,3],utest.Assert.createAsync());
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,testMap: function() {
 		steamer.Producer.ofArray([1,2,3]).map(function(v) {
 			return "" + v + v;
-		}).feed(steamer.consumers.AssertConsumer.ofArray(["11","22","33"],utest.Assert.createAsync()));
+		}).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray(["11","22","33"],utest.Assert.createAsync());
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,testFlatMap: function() {
-		steamer.Producer.flatMap(steamer.Producer.ofArray([[1],[2,3],[4,5,6]])).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3,4,5,6],utest.Assert.createAsync()));
+		steamer.Producer.flatMap(steamer.Producer.ofArray([[1],[2,3],[4,5,6]])).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray([1,2,3,4,5,6],utest.Assert.createAsync());
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,testFilter: function() {
 		steamer.Producer.ofArray([1,2,3,4,5]).filter(function(v) {
 			return v % 2 == 0;
-		}).feed(steamer.consumers.AssertConsumer.ofArray([2,4],utest.Assert.createAsync()));
+		}).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray([2,4],utest.Assert.createAsync());
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,testMerge: function() {
-		steamer.Producer.ofArray([1,2,3]).merge(steamer.Producer.ofArray([4,5,6])).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3,4,5,6],utest.Assert.createAsync()));
+		steamer.Producer.ofArray([1,2,3]).merge(steamer.Producer.ofArray([4,5,6])).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray([1,2,3,4,5,6],utest.Assert.createAsync());
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,testBlend: function() {
 		steamer.Producer.ofArray([1,2,3,4,5]).blend(steamer.Producer.ofArray(["a","b","c"]),function(i,s) {
 			return s + i;
-		}).feed(steamer.consumers.AssertConsumer.ofArray(["a1","b2","c3"],utest.Assert.createAsync()));
+		}).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray(["a1","b2","c3"],utest.Assert.createAsync());
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,testConcat: function() {
-		steamer.Producer.ofArray([1]).concat(steamer.Producer.ofArray([2,3])).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3],utest.Assert.createAsync()));
+		steamer.Producer.ofArray([1]).concat(steamer.Producer.ofArray([2,3])).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray([1,2,3],utest.Assert.createAsync());
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,testPair: function() {
-		steamer.Producer.ofArray([1,2,3]).pair(steamer.Producer.ofArray(["a","b","c"])).feed(steamer.consumers.AssertConsumer.ofArray([{ left : 3, right : "a"},{ left : 3, right : "b"},{ left : 3, right : "c"}],utest.Assert.createAsync()));
+		steamer.Producer.ofArray([1,2,3]).pair(steamer.Producer.ofArray(["a","b","c"])).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray([{ _0 : 3, _1 : "a"},{ _0 : 3, _1 : "b"},{ _0 : 3, _1 : "c"}],utest.Assert.createAsync());
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,testTimedArray: function() {
 		var start = new Date().getTime();
-		steamer.Producer.ofTimedArray([1,2,3],20).feed(steamer.consumers.AssertConsumer.ofArray([1,2,3],utest.Assert.createAsync(function() {
-			var span = new Date().getTime() - start;
-			utest.Assert.isTrue(span > 30,"should take about 40ms but it took " + span,{ fileName : "TestAll.hx", lineNumber : 140, className : "TestAll", methodName : "testTimedArray"});
-		})));
+		steamer.Producer.ofTimedArray([1,2,3],20).feed((function($this) {
+			var $r;
+			var consumer = steamer.consumers.AssertConsumer.ofArray([1,2,3],utest.Assert.createAsync(function() {
+				var span = new Date().getTime() - start;
+				utest.Assert.isTrue(span > 30,"should take about 40ms but it took " + span,{ fileName : "TestAll.hx", lineNumber : 140, className : "TestAll", methodName : "testTimedArray"});
+			}));
+			$r = consumer;
+			return $r;
+		}(this)));
 	}
 	,__class__: TestAll
 };
@@ -508,6 +558,11 @@ haxe.ds = {};
 haxe.ds.IntMap = function() { };
 haxe.ds.IntMap.__name__ = ["haxe","ds","IntMap"];
 haxe.ds.IntMap.__interfaces__ = [IMap];
+haxe.ds.Option = { __ename__ : ["haxe","ds","Option"], __constructs__ : ["Some","None"] };
+haxe.ds.Option.Some = function(v) { var $x = ["Some",0,v]; $x.__enum__ = haxe.ds.Option; $x.toString = $estr; return $x; };
+haxe.ds.Option.None = ["None",1];
+haxe.ds.Option.None.toString = $estr;
+haxe.ds.Option.None.__enum__ = haxe.ds.Option;
 haxe.ds.StringMap = function() {
 	this.h = { };
 };
@@ -684,20 +739,146 @@ js.Boot.__instanceof = function(o,cl) {
 	}
 };
 var steamer = {};
+steamer._Consumer = {};
+steamer._Consumer.Consumer_Impl_ = function() { };
+steamer._Consumer.Consumer_Impl_.__name__ = ["steamer","_Consumer","Consumer_Impl_"];
+steamer._Consumer.Consumer_Impl_._new = function(consumer) {
+	return consumer;
+};
+steamer._Consumer.Consumer_Impl_.fromConsumer = function(consumer) {
+	return consumer;
+};
+steamer._Consumer.Consumer_Impl_.fromFunction = function(f) {
+	return { onPulse : function(pulse) {
+		switch(pulse[1]) {
+		case 0:
+			var v = pulse[2];
+			f(v);
+			break;
+		default:
+		}
+	}};
+};
+steamer._Consumer.Consumer_Impl_.fromObject = function(o) {
+	if(null == o.emit) o.emit = function(_) {
+	};
+	if(null == o.end) o.end = function() {
+	};
+	if(null == o.error) o.error = function(e) {
+		throw e;
+	};
+	return { onPulse : function(pulse) {
+		switch(pulse[1]) {
+		case 0:
+			var v = pulse[2];
+			o.emit(v);
+			break;
+		case 1:
+			o.end();
+			break;
+		case 2:
+			var e1 = pulse[2];
+			o.error(e1);
+			break;
+		}
+	}};
+};
+steamer._Consumer.Consumer_Impl_.fromOption = function(o) {
+	if(null == o.some) o.some = function(_) {
+	};
+	if(null == o.none) o.none = function() {
+	};
+	if(null == o.end) o.end = function() {
+	};
+	if(null == o.error) o.error = function(e) {
+		throw e;
+	};
+	return { onPulse : function(pulse) {
+		switch(pulse[1]) {
+		case 0:
+			var opt = pulse[2];
+			switch(opt[1]) {
+			case 0:
+				var v = opt[2];
+				o.some(v);
+				break;
+			case 1:
+				o.none();
+				break;
+			}
+			break;
+		case 1:
+			o.end();
+			break;
+		case 2:
+			var e1 = pulse[2];
+			o.error(e1);
+			break;
+		}
+	}};
+};
+steamer._Consumer.Consumer_Impl_.toImplementation = function(this1) {
+	return this1;
+};
 steamer.Producer = function(handler,endOnError) {
 	if(endOnError == null) endOnError = true;
 	this.handler = handler;
 	this.endOnError = endOnError;
 };
 steamer.Producer.__name__ = ["steamer","Producer"];
+steamer.Producer.filterOption = function(producer) {
+	return producer.filter(function(opt) {
+		switch(opt[1]) {
+		case 0:
+			return true;
+		case 1:
+			return false;
+		}
+	}).map(function(opt1) {
+		switch(opt1[1]) {
+		case 0:
+			var v = opt1[2];
+			return v;
+		case 1:
+			throw "filterOption failed";
+			break;
+		}
+	});
+};
+steamer.Producer.toValue = function(producer) {
+	return producer.map(function(opt) {
+		switch(opt[1]) {
+		case 0:
+			var v = opt[2];
+			return v;
+		case 1:
+			return null;
+		}
+	});
+};
+steamer.Producer.toBool = function(producer) {
+	return producer.map(function(opt) {
+		switch(opt[1]) {
+		case 0:
+			return true;
+		case 1:
+			return false;
+		}
+	});
+};
+steamer.Producer.skipNull = function(producer) {
+	return producer.filter(function(value) {
+		return null != value;
+	});
+};
 steamer.Producer.left = function(producer) {
 	return producer.map(function(v) {
-		return v.left;
+		return v._0;
 	});
 };
 steamer.Producer.right = function(producer) {
 	return producer.map(function(v) {
-		return v.right;
+		return v._1;
 	});
 };
 steamer.Producer.negate = function(producer) {
@@ -707,11 +888,16 @@ steamer.Producer.negate = function(producer) {
 };
 steamer.Producer.flatMap = function(producer) {
 	return new steamer.Producer(function(forward) {
-		producer.feed(steamer.Bus.passOn(function(arr) {
-			arr.map(function(value) {
-				forward(steamer.Pulse.Emit(value));
-			});
-		},forward));
+		producer.feed((function($this) {
+			var $r;
+			var consumer = steamer.Bus.passOn(function(arr) {
+				arr.map(function(value) {
+					forward(steamer.Pulse.Emit(value));
+				});
+			},forward);
+			$r = consumer;
+			return $r;
+		}(this)));
 	},producer.endOnError);
 };
 steamer.Producer.ofArray = function(values) {
@@ -727,19 +913,24 @@ steamer.Producer.ofTimedArray = function(values,delay) {
 };
 steamer.Producer.delayed = function(producer,delay) {
 	return new steamer.Producer(function(forward) {
-		producer.feed(new steamer.Bus(function(v) {
-			thx.Timer.setTimeout(function() {
-				forward(steamer.Pulse.Emit(v));
-			},delay);
-		},function() {
-			thx.Timer.setTimeout(function() {
-				forward(steamer.Pulse.End);
-			},delay);
-		},function(error) {
-			thx.Timer.setTimeout(function() {
-				forward(steamer.Pulse.Fail(error));
-			},delay);
-		}));
+		producer.feed((function($this) {
+			var $r;
+			var consumer = new steamer.Bus(function(v) {
+				setTimeout(function() {
+					forward(steamer.Pulse.Emit(v));
+				},delay);
+			},function() {
+				setTimeout(function() {
+					forward(steamer.Pulse.End);
+				},delay);
+			},function(error) {
+				setTimeout(function() {
+					forward(steamer.Pulse.Fail(error));
+				},delay);
+			});
+			$r = consumer;
+			return $r;
+		}(this)));
 	},producer.endOnError);
 };
 steamer.Producer.prototype = {
@@ -749,24 +940,24 @@ steamer.Producer.prototype = {
 		var _g = this;
 		var ended = false;
 		var sendPulse = function(v) {
-			if(ended) throw new Error("Feed already reached end but still receiving pulses: ${v}"); else switch(v[1]) {
+			if(ended) throw new thx.core.Error("Feed already reached end but still receiving pulses: ${v}",null,{ fileName : "Producer.hx", lineNumber : 24, className : "steamer.Producer", methodName : "feed"}); else switch(v[1]) {
 			case 2:
 				if(_g.endOnError) {
 					thx.Timer.setImmediate((function(f,a1) {
 						return function() {
 							return f(a1);
 						};
-					})($bind(consumer,consumer.onPulse),v));
+					})(($_=consumer,$bind($_,$_.onPulse)),v));
 					thx.Timer.setImmediate((function(f1,a11) {
 						return function() {
 							return f1(a11);
 						};
-					})($bind(consumer,consumer.onPulse),steamer.Pulse.End));
+					})(($_=consumer,$bind($_,$_.onPulse)),steamer.Pulse.End));
 				} else thx.Timer.setImmediate((function(f2,a12) {
 					return function() {
 						return f2(a12);
 					};
-				})($bind(consumer,consumer.onPulse),v));
+				})(($_=consumer,$bind($_,$_.onPulse)),v));
 				break;
 			case 1:
 				ended = true;
@@ -774,17 +965,23 @@ steamer.Producer.prototype = {
 					return function() {
 						return f3(a13);
 					};
-				})($bind(consumer,consumer.onPulse),steamer.Pulse.End));
+				})(($_=consumer,$bind($_,$_.onPulse)),steamer.Pulse.End));
 				break;
 			default:
 				thx.Timer.setImmediate((function(f2,a12) {
 					return function() {
 						return f2(a12);
 					};
-				})($bind(consumer,consumer.onPulse),v));
+				})(($_=consumer,$bind($_,$_.onPulse)),v));
 			}
 		};
 		this.handler(sendPulse);
+		return this;
+	}
+	,toOption: function() {
+		return this.map(function(v) {
+			if(null == v) return haxe.ds.Option.None; else return haxe.ds.Option.Some(v);
+		});
 	}
 	,map: function(transform) {
 		return this.mapAsync(function(v,t) {
@@ -794,61 +991,104 @@ steamer.Producer.prototype = {
 	,mapAsync: function(transform) {
 		var _g = this;
 		return new steamer.Producer(function(forward) {
-			_g.feed(steamer.Bus.passOn(function(value) {
-				try {
-					var t = function(v) {
-						forward(steamer.Pulse.Emit(v));
-					};
-					transform(value,t);
-				} catch( $e0 ) {
-					if( js.Boot.__instanceof($e0,Error) ) {
-						var e = $e0;
-						forward(steamer.Pulse.Fail(e));
-					} else {
-					var e1 = $e0;
-					forward(steamer.Pulse.Fail(new Error(Std.string(e1))));
+			_g.feed((function($this) {
+				var $r;
+				var consumer = steamer.Bus.passOn(function(value) {
+					try {
+						var t = function(v) {
+							forward(steamer.Pulse.Emit(v));
+						};
+						transform(value,t);
+					} catch( $e0 ) {
+						if( js.Boot.__instanceof($e0,thx.core.Error) ) {
+							var e = $e0;
+							forward(steamer.Pulse.Fail(e));
+						} else {
+						var e1 = $e0;
+						forward(steamer.Pulse.Fail(new thx.core.Error(Std.string(e1),null,{ fileName : "Producer.hx", lineNumber : 57, className : "steamer.Producer", methodName : "mapAsync"})));
+						}
 					}
-				}
-			},forward));
+				},forward);
+				$r = consumer;
+				return $r;
+			}(this)));
 		},this.endOnError);
+	}
+	,toNil: function() {
+		return this.map(function(_) {
+			return thx.core.Nil.nil;
+		});
+	}
+	,toTrue: function() {
+		return this.map(function(_) {
+			return true;
+		});
+	}
+	,toFalse: function() {
+		return this.map(function(_) {
+			return false;
+		});
 	}
 	,log: function(prefix,posInfo) {
 		if(prefix == null) prefix = ""; else prefix = "" + prefix + ": ";
 		return this.map(function(v) {
-			haxe.Log.trace(v,{ fileName : "Producer.hx", lineNumber : 61, className : "steamer.Producer", methodName : "log", customParams : [posInfo]});
+			haxe.Log.trace("" + prefix + Std.string(v),posInfo);
 			return v;
 		});
+	}
+	,filterMap: function(transform) {
+		return this.filterMapAsync(function(v,t) {
+			t(transform(v));
+		});
+	}
+	,filterMapAsync: function(transform) {
+		return steamer.Producer.filterOption(this.mapAsync(transform));
 	}
 	,filter: function(f) {
 		return this.filterAsync(function(v,t) {
 			t(f(v));
 		});
 	}
+	,filterValue: function(value) {
+		return this.filterAsync(function(v,t) {
+			t(v == value);
+		});
+	}
 	,filterAsync: function(f) {
 		var _g = this;
 		return new steamer.Producer(function(forward) {
-			_g.feed(steamer.Bus.passOn(function(value) {
-				try {
-					var t = function(v) {
-						if(v) forward(steamer.Pulse.Emit(value));
-					};
-					f(value,t);
-				} catch( $e0 ) {
-					if( js.Boot.__instanceof($e0,Error) ) {
-						var e = $e0;
-						forward(steamer.Pulse.Fail(e));
-					} else {
-					var e1 = $e0;
-					forward(steamer.Pulse.Fail(new Error(Std.string(e1))));
+			_g.feed((function($this) {
+				var $r;
+				var consumer = steamer.Bus.passOn(function(value) {
+					try {
+						var t = function(v) {
+							if(v) forward(steamer.Pulse.Emit(value));
+						};
+						f(value,t);
+					} catch( $e0 ) {
+						if( js.Boot.__instanceof($e0,thx.core.Error) ) {
+							var e = $e0;
+							forward(steamer.Pulse.Fail(e));
+						} else {
+						var e1 = $e0;
+						forward(steamer.Pulse.Fail(new thx.core.Error(Std.string(e1),null,{ fileName : "Producer.hx", lineNumber : 107, className : "steamer.Producer", methodName : "filterAsync"})));
+						}
 					}
-				}
-			},forward));
+				},forward);
+				$r = consumer;
+				return $r;
+			}(this)));
 		},this.endOnError);
+	}
+	,withValue: function() {
+		return this.filter(function(v) {
+			return v != null;
+		});
 	}
 	,merge: function(other) {
 		var _g = this;
-		var ended = false;
 		return new steamer.Producer(function(forward) {
+			var ended = false;
 			var emit = function(v) {
 				forward(steamer.Pulse.Emit(v));
 			};
@@ -858,8 +1098,18 @@ steamer.Producer.prototype = {
 			var fail = function(error) {
 				forward(steamer.Pulse.Fail(error));
 			};
-			_g.feed(new steamer.Bus(emit,end,fail));
-			other.feed(new steamer.Bus(emit,end,fail));
+			_g.feed((function($this) {
+				var $r;
+				var consumer = new steamer.Bus(emit,end,fail);
+				$r = consumer;
+				return $r;
+			}(this)));
+			other.feed((function($this) {
+				var $r;
+				var consumer1 = new steamer.Bus(emit,end,fail);
+				$r = consumer1;
+				return $r;
+			}(this)));
 		},this.endOnError);
 	}
 	,concat: function(other) {
@@ -871,9 +1121,19 @@ steamer.Producer.prototype = {
 			var fail = function(error) {
 				forward(steamer.Pulse.Fail(error));
 			};
-			_g.feed(new steamer.Bus(emit,function() {
-				other.feed(steamer.Bus.passOn(emit,forward));
-			},fail));
+			_g.feed((function($this) {
+				var $r;
+				var consumer = new steamer.Bus(emit,function() {
+					other.feed((function($this) {
+						var $r;
+						var consumer1 = steamer.Bus.passOn(emit,forward);
+						$r = consumer1;
+						return $r;
+					}(this)));
+				},fail);
+				$r = consumer;
+				return $r;
+			}(this)));
 		},this.endOnError);
 	}
 	,zip: function(other) {
@@ -892,33 +1152,49 @@ steamer.Producer.prototype = {
 					return forward(steamer.Pulse.End);
 				}
 				if(buffA.length == 0 || buffB.length == 0) return;
-				forward(steamer.Pulse.Emit({ left : buffA.shift(), right : buffB.shift()}));
+				forward(steamer.Pulse.Emit((function($this) {
+					var $r;
+					var _0 = buffA.shift();
+					var _1 = buffB.shift();
+					$r = { _0 : _0, _1 : _1};
+					return $r;
+				}(this))));
 			};
-			_g.feed(new steamer.Bus(function(value) {
-				if(ended) return;
-				buffA.push(value);
-				produce();
-			},function() {
-				endA = true;
-				produce();
-			},function(error) {
-				forward(steamer.Pulse.Fail(error));
-			}));
-			other.feed(new steamer.Bus(function(value1) {
-				if(ended) return;
-				buffB.push(value1);
-				produce();
-			},function() {
-				endB = true;
-				produce();
-			},function(error1) {
-				forward(steamer.Pulse.Fail(error1));
-			}));
+			_g.feed((function($this) {
+				var $r;
+				var consumer = new steamer.Bus(function(value) {
+					if(ended) return;
+					buffA.push(value);
+					produce();
+				},function() {
+					endA = true;
+					produce();
+				},function(error) {
+					forward(steamer.Pulse.Fail(error));
+				});
+				$r = consumer;
+				return $r;
+			}(this)));
+			other.feed((function($this) {
+				var $r;
+				var consumer1 = new steamer.Bus(function(value1) {
+					if(ended) return;
+					buffB.push(value1);
+					produce();
+				},function() {
+					endB = true;
+					produce();
+				},function(error1) {
+					forward(steamer.Pulse.Fail(error1));
+				});
+				$r = consumer1;
+				return $r;
+			}(this)));
 		},this.endOnError);
 	}
 	,blend: function(other,f) {
 		return this.zip(other).map(function(tuple) {
-			return f(tuple.left,tuple.right);
+			return f(tuple._0,tuple._1);
 		});
 	}
 	,pair: function(other) {
@@ -935,54 +1211,161 @@ steamer.Producer.prototype = {
 					return forward(steamer.Pulse.End);
 				}
 				if(buffA == null || buffB == null) return;
-				forward(steamer.Pulse.Emit({ left : buffA, right : buffB}));
+				forward(steamer.Pulse.Emit({ _0 : buffA, _1 : buffB}));
 			};
-			_g.feed(new steamer.Bus(function(value) {
-				buffA = value;
-				produce();
-			},function() {
-				endA = true;
-				produce();
-			},function(error) {
-				forward(steamer.Pulse.Fail(error));
-			}));
-			other.feed(new steamer.Bus(function(value1) {
-				buffB = value1;
-				produce();
-			},function() {
-				endB = true;
-				produce();
-			},function(error1) {
-				forward(steamer.Pulse.Fail(error1));
-			}));
+			_g.feed((function($this) {
+				var $r;
+				var consumer = new steamer.Bus(function(value) {
+					buffA = value;
+					produce();
+				},function() {
+					endA = true;
+					produce();
+				},function(error) {
+					forward(steamer.Pulse.Fail(error));
+				});
+				$r = consumer;
+				return $r;
+			}(this)));
+			other.feed((function($this) {
+				var $r;
+				var consumer1 = new steamer.Bus(function(value1) {
+					buffB = value1;
+					produce();
+				},function() {
+					endB = true;
+					produce();
+				},function(error1) {
+					forward(steamer.Pulse.Fail(error1));
+				});
+				$r = consumer1;
+				return $r;
+			}(this)));
 		},this.endOnError);
 	}
-	,distinct: function() {
+	,distinct: function(equals) {
 		var _g = this;
-		var last = null;
+		if(null == equals) equals = function(a,b) {
+			return a == b;
+		};
 		return new steamer.Producer(function(forward) {
-			_g.feed(steamer.Bus.passOn(function(v) {
-				if(v == last) return;
-				last = v;
-				forward(steamer.Pulse.Emit(v));
-			},forward));
+			var last = null;
+			_g.feed((function($this) {
+				var $r;
+				var consumer = steamer.Bus.passOn(function(v) {
+					if(equals(v,last)) return;
+					last = v;
+					forward(steamer.Pulse.Emit(v));
+				},forward);
+				$r = consumer;
+				return $r;
+			}(this)));
+		},this.endOnError);
+	}
+	,debounce: function(delay) {
+		var _g = this;
+		return new steamer.Producer(function(forward) {
+			var id = null;
+			_g.feed((function($this) {
+				var $r;
+				var consumer = steamer.Bus.passOn(function(v) {
+					clearTimeout(id);
+					id = thx.Timer.setTimeout((function(f,a1) {
+						return function() {
+							return f(a1);
+						};
+					})(forward,steamer.Pulse.Emit(v)),delay);
+				},forward);
+				$r = consumer;
+				return $r;
+			}(this)));
 		},this.endOnError);
 	}
 	,sampleBy: function(sampler) {
 		var _g = this;
-		var latest = null;
 		return new steamer.Producer(function(forward) {
-			_g.feed(steamer.Bus.passOn(function(v) {
-				latest = v;
-			},forward));
-			sampler.feed(steamer.Bus.passOn(function(v1) {
-				if(null == latest) return;
-				forward(steamer.Pulse.Emit({ left : latest, right : v1}));
-				latest = null;
-			},forward));
+			var latest = null;
+			_g.feed((function($this) {
+				var $r;
+				var consumer = steamer.Bus.passOn(function(v) {
+					latest = v;
+				},forward);
+				$r = consumer;
+				return $r;
+			}(this)));
+			sampler.feed((function($this) {
+				var $r;
+				var consumer1 = steamer.Bus.passOn(function(v1) {
+					if(null == latest) return;
+					forward(steamer.Pulse.Emit({ _0 : latest, _1 : v1}));
+					latest = null;
+				},forward);
+				$r = consumer1;
+				return $r;
+			}(this)));
+		},this.endOnError);
+	}
+	,keep: function(n) {
+		var _g = this;
+		return new steamer.Producer(function(forward) {
+			var acc = [];
+			_g.feed((function($this) {
+				var $r;
+				var consumer = steamer.Bus.passOn(function(v) {
+					acc.push(v);
+					if(acc.length > n) acc.shift();
+					forward(steamer.Pulse.Emit(acc));
+				},forward);
+				$r = consumer;
+				return $r;
+			}(this)));
+		},this.endOnError);
+	}
+	,previous: function() {
+		var _g = this;
+		return new steamer.Producer(function(forward) {
+			var isFirst = true;
+			var state = null;
+			_g.feed((function($this) {
+				var $r;
+				var consumer = steamer.Bus.passOn(function(v) {
+					if(isFirst) isFirst = false; else forward(steamer.Pulse.Emit(state));
+					state = v;
+				},forward);
+				$r = consumer;
+				return $r;
+			}(this)));
 		},this.endOnError);
 	}
 	,__class__: steamer.Producer
+};
+steamer.ProducerProducer = function() { };
+steamer.ProducerProducer.__name__ = ["steamer","ProducerProducer"];
+steamer.ProducerProducer.flatMap = function(producer) {
+	return new steamer.Producer(function(forward) {
+		producer.feed((function($this) {
+			var $r;
+			var consumer = steamer.Bus.passOn(function(prod) {
+				prod.feed((function($this) {
+					var $r;
+					var consumer1 = steamer.Bus.passOn(function(value) {
+						forward(steamer.Pulse.Emit(value));
+					},forward);
+					$r = consumer1;
+					return $r;
+				}(this)));
+			},forward);
+			$r = consumer;
+			return $r;
+		}(this)));
+	},producer.endOnError);
+};
+steamer.StringProducer = function() { };
+steamer.StringProducer.__name__ = ["steamer","StringProducer"];
+steamer.StringProducer.toBool = function(producer) {
+	return producer.map(function(s) {
+		return s != null && s != "";
+	});
 };
 steamer.Bus = function(emit,end,fail) {
 	this.emit = emit;
@@ -990,6 +1373,15 @@ steamer.Bus = function(emit,end,fail) {
 	this.fail = fail;
 };
 steamer.Bus.__name__ = ["steamer","Bus"];
+steamer.Bus.feed = function(forward) {
+	return new steamer.Bus(function(v) {
+		forward(steamer.Pulse.Emit(v));
+	},function() {
+		forward(steamer.Pulse.End);
+	},function(error) {
+		forward(steamer.Pulse.Fail(error));
+	});
+};
 steamer.Bus.passOn = function(emit,forward) {
 	return new steamer.Bus(emit,function() {
 		forward(steamer.Pulse.End);
@@ -1025,10 +1417,11 @@ steamer.Pulse.End.toString = $estr;
 steamer.Pulse.End.__enum__ = steamer.Pulse;
 steamer.Pulse.Fail = function(error) { var $x = ["Fail",2,error]; $x.__enum__ = steamer.Pulse; $x.toString = $estr; return $x; };
 var thx = {};
-thx.Nil = { __ename__ : ["thx","Nil"], __constructs__ : ["nil"] };
-thx.Nil.nil = ["nil",0];
-thx.Nil.nil.toString = $estr;
-thx.Nil.nil.__enum__ = thx.Nil;
+thx.core = {};
+thx.core.Nil = { __ename__ : ["thx","core","Nil"], __constructs__ : ["nil"] };
+thx.core.Nil.nil = ["nil",0];
+thx.core.Nil.nil.toString = $estr;
+thx.core.Nil.nil.__enum__ = thx.core.Nil;
 steamer.Pulses = function() { };
 steamer.Pulses.__name__ = ["steamer","Pulses"];
 steamer.Pulses.times = function(n,pulse) {
@@ -1089,12 +1482,12 @@ steamer.producers.Interval = function(delay,times) {
 	steamer.Producer.call(this,function(pulse) {
 		var callback = null;
 		if(times <= 0) callback = function() {
-			thx.Timer.setInterval(function() {
+			setInterval(function() {
 				pulse(steamer.Pulses.nil);
 			},delay);
 		}; else callback = function() {
 			pulse(steamer.Pulses.nil);
-			if(0 == --times) pulse(steamer.Pulse.End); else thx.Timer.setTimeout(callback,delay);
+			if(0 == --times) pulse(steamer.Pulse.End); else setTimeout(callback,delay);
 		};
 		callback();
 	});
@@ -1113,10 +1506,154 @@ thx.Timer.setTimeout = function(callback,delay) {
 	return setTimeout(callback,delay);
 };
 thx.Timer.setImmediate = function(callback) {
-	return setTimeout(callback,0);
+	return setImmediate(callback);
 };
 thx.Timer.clearTimer = function(id) {
 	return clearTimeout(id);
+};
+thx.core.Error = function(message,stack,pos) {
+	this.message = message;
+	if(null == stack) {
+		stack = haxe.CallStack.exceptionStack();
+		if(stack.length == 0) stack = haxe.CallStack.callStack();
+	}
+	this.stack = stack;
+	this.pos = pos;
+};
+thx.core.Error.__name__ = ["thx","core","Error"];
+thx.core.Error.fromDynamic = function(err,pos) {
+	if(js.Boot.__instanceof(err,thx.core.Error)) return err;
+	return new thx.core.Error("" + Std.string(err),null,pos);
+};
+thx.core.Error.__super__ = Error;
+thx.core.Error.prototype = $extend(Error.prototype,{
+	stack: null
+	,pos: null
+	,__class__: thx.core.Error
+});
+thx.core._Tuple = {};
+thx.core._Tuple.Tuple1_Impl_ = function() { };
+thx.core._Tuple.Tuple1_Impl_.__name__ = ["thx","core","_Tuple","Tuple1_Impl_"];
+thx.core._Tuple.Tuple1_Impl_._new = function(_0) {
+	return _0;
+};
+thx.core._Tuple.Tuple1_Impl_.get__0 = function(this1) {
+	return this1;
+};
+thx.core._Tuple.Tuple1_Impl_.toString = function(this1) {
+	return "Tuple1(" + Std.string(this1) + ")";
+};
+thx.core._Tuple.Tuple2_Impl_ = function() { };
+thx.core._Tuple.Tuple2_Impl_.__name__ = ["thx","core","_Tuple","Tuple2_Impl_"];
+thx.core._Tuple.Tuple2_Impl_._new = function(_0,_1) {
+	return { _0 : _0, _1 : _1};
+};
+thx.core._Tuple.Tuple2_Impl_.get__0 = function(this1) {
+	return this1._0;
+};
+thx.core._Tuple.Tuple2_Impl_.get__1 = function(this1) {
+	return this1._1;
+};
+thx.core._Tuple.Tuple2_Impl_.toTuple3 = function(this1,v) {
+	return { _0 : this1._0, _1 : this1._1, _2 : v};
+};
+thx.core._Tuple.Tuple2_Impl_.toString = function(this1) {
+	return "Tuple2(" + Std.string(this1._0) + "," + Std.string(this1._1) + ")";
+};
+thx.core._Tuple.Tuple3_Impl_ = function() { };
+thx.core._Tuple.Tuple3_Impl_.__name__ = ["thx","core","_Tuple","Tuple3_Impl_"];
+thx.core._Tuple.Tuple3_Impl_._new = function(_0,_1,_2) {
+	return { _0 : _0, _1 : _1, _2 : _2};
+};
+thx.core._Tuple.Tuple3_Impl_.get__0 = function(this1) {
+	return this1._0;
+};
+thx.core._Tuple.Tuple3_Impl_.get__1 = function(this1) {
+	return this1._1;
+};
+thx.core._Tuple.Tuple3_Impl_.get__2 = function(this1) {
+	return this1._2;
+};
+thx.core._Tuple.Tuple3_Impl_.toTuple4 = function(this1,v) {
+	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : v};
+};
+thx.core._Tuple.Tuple3_Impl_.toString = function(this1) {
+	return "Tuple3(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + ")";
+};
+thx.core._Tuple.Tuple4_Impl_ = function() { };
+thx.core._Tuple.Tuple4_Impl_.__name__ = ["thx","core","_Tuple","Tuple4_Impl_"];
+thx.core._Tuple.Tuple4_Impl_._new = function(_0,_1,_2,_3) {
+	return { _0 : _0, _1 : _1, _2 : _2, _3 : _3};
+};
+thx.core._Tuple.Tuple4_Impl_.get__0 = function(this1) {
+	return this1._0;
+};
+thx.core._Tuple.Tuple4_Impl_.get__1 = function(this1) {
+	return this1._1;
+};
+thx.core._Tuple.Tuple4_Impl_.get__2 = function(this1) {
+	return this1._2;
+};
+thx.core._Tuple.Tuple4_Impl_.get__3 = function(this1) {
+	return this1._3;
+};
+thx.core._Tuple.Tuple4_Impl_.toTuple5 = function(this1,v) {
+	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3, _4 : v};
+};
+thx.core._Tuple.Tuple4_Impl_.toString = function(this1) {
+	return "Tuple4(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + ")";
+};
+thx.core._Tuple.Tuple5_Impl_ = function() { };
+thx.core._Tuple.Tuple5_Impl_.__name__ = ["thx","core","_Tuple","Tuple5_Impl_"];
+thx.core._Tuple.Tuple5_Impl_._new = function(_0,_1,_2,_3,_4) {
+	return { _0 : _0, _1 : _1, _2 : _2, _3 : _3, _4 : _4};
+};
+thx.core._Tuple.Tuple5_Impl_.get__0 = function(this1) {
+	return this1._0;
+};
+thx.core._Tuple.Tuple5_Impl_.get__1 = function(this1) {
+	return this1._1;
+};
+thx.core._Tuple.Tuple5_Impl_.get__2 = function(this1) {
+	return this1._2;
+};
+thx.core._Tuple.Tuple5_Impl_.get__3 = function(this1) {
+	return this1._3;
+};
+thx.core._Tuple.Tuple5_Impl_.get__4 = function(this1) {
+	return this1._4;
+};
+thx.core._Tuple.Tuple5_Impl_.toTuple6 = function(this1,v) {
+	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3, _4 : this1._4, _5 : v};
+};
+thx.core._Tuple.Tuple5_Impl_.toString = function(this1) {
+	return "Tuple5(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + "," + Std.string(this1._4) + ")";
+};
+thx.core._Tuple.Tuple6_Impl_ = function() { };
+thx.core._Tuple.Tuple6_Impl_.__name__ = ["thx","core","_Tuple","Tuple6_Impl_"];
+thx.core._Tuple.Tuple6_Impl_._new = function(_0,_1,_2,_3,_4,_5) {
+	return { _0 : _0, _1 : _1, _2 : _2, _3 : _3, _4 : _4, _5 : _5};
+};
+thx.core._Tuple.Tuple6_Impl_.get__0 = function(this1) {
+	return this1._0;
+};
+thx.core._Tuple.Tuple6_Impl_.get__1 = function(this1) {
+	return this1._1;
+};
+thx.core._Tuple.Tuple6_Impl_.get__2 = function(this1) {
+	return this1._2;
+};
+thx.core._Tuple.Tuple6_Impl_.get__3 = function(this1) {
+	return this1._3;
+};
+thx.core._Tuple.Tuple6_Impl_.get__4 = function(this1) {
+	return this1._4;
+};
+thx.core._Tuple.Tuple6_Impl_.get__5 = function(this1) {
+	return this1._5;
+};
+thx.core._Tuple.Tuple6_Impl_.toString = function(this1) {
+	return "Tuple6(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + "," + Std.string(this1._4) + "," + Std.string(this1._5) + ")";
 };
 var utest = {};
 utest.Assert = function() { };
@@ -1159,7 +1696,7 @@ utest.Assert.floatEquals = function(expected,value,approx,msg,pos) {
 	return utest.Assert.isTrue(utest.Assert._floatEquals(expected,value,approx),msg,pos);
 };
 utest.Assert._floatEquals = function(expected,value,approx) {
-	if(Math.isNaN(expected)) return Math.isNaN(value); else if(Math.isNaN(value)) return false; else if(!Math.isFinite(expected) && !Math.isFinite(value)) return expected > 0 == value > 0;
+	if(isNaN(expected)) return isNaN(value); else if(isNaN(value)) return false; else if(!isFinite(expected) && !isFinite(value)) return expected > 0 == value > 0;
 	if(null == approx) approx = 1e-5;
 	return Math.abs(value - expected) < approx;
 };
@@ -2860,15 +3397,6 @@ function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id
 if(Array.prototype.indexOf) HxOverrides.indexOf = function(a,o,i) {
 	return Array.prototype.indexOf.call(a,o,i);
 };
-Math.NaN = Number.NaN;
-Math.NEGATIVE_INFINITY = Number.NEGATIVE_INFINITY;
-Math.POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
-Math.isFinite = function(i) {
-	return isFinite(i);
-};
-Math.isNaN = function(i1) {
-	return isNaN(i1);
-};
 String.prototype.__class__ = String;
 String.__name__ = ["String"];
 Array.__name__ = ["Array"];
@@ -2892,7 +3420,11 @@ if(Array.prototype.map == null) Array.prototype.map = function(f) {
 	}
 	return a;
 };
-steamer.Pulses.nil = steamer.Pulse.Emit(thx.Nil.nil);
+var scope = window || this;
+if(!scope.setImmediate) scope.setImmediate = function(callback) {
+	scope.setTimeout(callback,0);
+};
+steamer.Pulses.nil = steamer.Pulse.Emit(thx.core.Nil.nil);
 utest.TestHandler.POLLING_TIME = 10;
 utest.ui.text.HtmlReport.platform = "javascript";
 TestAll.main();

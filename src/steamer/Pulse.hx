@@ -1,7 +1,7 @@
 package steamer;
 
-import thx.Error;
-import thx.Nil;
+import thx.core.Error;
+import thx.core.Nil;
 
 enum Pulse<T> {
 	Emit(value : T);
@@ -10,7 +10,7 @@ enum Pulse<T> {
 }
 
 class Pulses {
-	public static var nil(default, null) : Pulse<Nil> = Emit(thx.Nil.nil);
+	public static var nil(default, null) : Pulse<Nil> = Emit(thx.core.Nil.nil);
 
 	public static function times<T>(n : Int, pulse : Pulse<T>) {
 		return [for(i in 0...n) pulse].concat([End]);

@@ -1,6 +1,6 @@
 package steamer;
 
-import thx.Error;
+import thx.core.Error;
 import steamer.Pulse;
 import haxe.ds.Option;
 

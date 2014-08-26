@@ -2,10 +2,10 @@ package steamer;
 
 import steamer.producers.Interval;
 import steamer.Pulse;
-import thx.Error;
-import thx.Nil;
+import thx.core.Error;
+import thx.core.Nil;
 import thx.Timer;
-import thx.Tuple;
+import thx.core.Tuple;
 import haxe.ds.Option;
 
 class Producer<T> {
@@ -153,8 +153,8 @@ class Producer<T> {
 		}, endOnError);
 	}
 
-	public function zip<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> {
-		return new Producer(function(forward : Pulse<Tuple<T, TOther>> -> Void) {
+	public function zip<TOther>(other : Producer<TOther>) : Producer<Tuple2<T, TOther>> {
+		return new Producer(function(forward : Pulse<Tuple2<T, TOther>> -> Void) {
 			var ended = false,
 				endA  = false,
 				endB  = false,
@@ -169,10 +169,7 @@ class Producer<T> {
 					return forward(End);
 				}
 				if(buffA.length == 0 || buffB.length == 0) return;
-				forward(Emit({
-					left  : buffA.shift(),
-					right : buffB.shift()
-				}));
+				forward(Emit(new Tuple2(buffA.shift(), buffB.shift())));
 			}
 
 			this.feed(new Bus(
@@ -209,12 +206,12 @@ class Producer<T> {
 
 	public function blend<TOther, TOut>(other : Producer<TOther>, f : T -> TOther -> TOut) : Producer<TOut> {
 		return this.zip(other).map(function(tuple) {
-			return f(tuple.left, tuple.right);
+			return f(tuple._0, tuple._1);
 		});
 	}
 
-	public function pair<TOther>(other : Producer<TOther>) : Producer<Tuple<T, TOther>> {
-		return new Producer(function(forward : Pulse<Tuple<T, TOther>> -> Void) {
+	public function pair<TOther>(other : Producer<TOther>) : Producer<Tuple2<T, TOther>> {
+		return new Producer(function(forward : Pulse<Tuple2<T, TOther>> -> Void) {
 			var endA  = false,
 				endB  = false,
 				buffA : T = null,
@@ -227,10 +224,7 @@ class Producer<T> {
 					return forward(End);
 				}
 				if(buffA == null || buffB == null) return;
-				forward(Emit({
-					left  : buffA,
-					right : buffB
-				}));
+				forward(Emit(new Tuple2(buffA, buffB)));
 			}
 
 			this.feed(new Bus(
@@ -293,8 +287,8 @@ class Producer<T> {
 		}, endOnError);
 	}
 
-	public function sampleBy<TSampler>(sampler : Producer<TSampler>) : Producer<Tuple<T, TSampler>> {
-		return new Producer(function(forward) {
+	public function sampleBy<TSampler>(sampler : Producer<TSampler>) : Producer<Tuple2<T, TSampler>> {
+		return new Producer(function(forward : Pulse<Tuple2<T, TSampler>> -> Void) {
 			var latest : T = null;
 			this.feed(Bus.passOn(
 				function(v) latest = v,
@@ -304,7 +298,7 @@ class Producer<T> {
 				function(v) {
 					// skip if this hasn't produced anything yet or has been cleared
 					if(null == latest) return;
-					forward(Emit({ left : latest, right : v }));
+					forward(Emit(new Tuple2(latest, v)));
 					latest = null;
 				},
 				forward
@@ -368,11 +362,11 @@ class Producer<T> {
 		return producer
 			.filter(function(value) return null != value);
 
-	public static function left<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TLeft>
-		return producer.map(function(v) return v.left);
+	public static function left<TLeft, TRight>(producer : Producer<Tuple2<TLeft, TRight>>) : Producer<TLeft>
+		return producer.map(function(v) return v._0);
 
-	public static function right<TLeft, TRight>(producer : Producer<Tuple<TLeft, TRight>>) : Producer<TRight>
-		return producer.map(function(v) return v.right);
+	public static function right<TLeft, TRight>(producer : Producer<Tuple2<TLeft, TRight>>) : Producer<TRight>
+		return producer.map(function(v) return v._1);
 
 	public static function negate(producer : Producer<Bool>)
 		return producer.map(function(v) return !v);
@@ -406,6 +400,23 @@ class Producer<T> {
 					Timer.setTimeout(function() forward(End), delay),
 				function(error)
 					Timer.setTimeout(function() forward(Fail(error)), delay)
+			));
+		}, producer.endOnError);
+	}
+}
+
+@:access(steamer.Producer)
+class ProducerProducer {
+	public static function flatMap<T>(producer : Producer<Producer<T>>) : Producer<T> {
+		return new Producer(function(forward : Pulse<T> -> Void) {
+			producer.feed(Bus.passOn(
+				function(prod : Producer<T>) {
+					prod.feed(Bus.passOn(
+						function(value : T) forward(Emit(value)),
+						forward
+					));
+				},
+				forward
 			));
 		}, producer.endOnError);
 	}
